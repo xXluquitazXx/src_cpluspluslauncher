@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 lucas
+ * Copyright (C) 2024 lucas
  *
  * Este programa es software libre: puedes redistribuirlo y/o modificarlo
  * bajo los términos de la Licencia Pública General GNU publicada por la
@@ -282,7 +282,9 @@ long double diferencia = 0.0L;
 }
 namespace Vars {
     unsigned int VBO1, VAO1;
-    
+    unsigned int VBO2, VAO2;
+    unsigned int VBO3, VAO3;
+
     unsigned int VBO, VAO;
     unsigned int VBO5, VAO5;
     unsigned int VBO4, VAO4;
@@ -298,7 +300,26 @@ namespace Vars {
         0.8f, 0.8f, 0.0f,
         0.8f, -0.8f, 0.0f
     };
-
+    float posiciones3[9] = {
+        0.7f, 0.8f, 0.0f,
+        0.75f, 0.8f, 0.0f,
+        0.75f, 0.6f, 0.0f
+    };
+    float posiciones2[9] = {
+        0.7f, 0.8f, 0.0f,
+        0.7f, 0.6f, 0.0f,
+        0.75f, 0.6f, 0.0f
+    };
+        float posiciones5[9] = {
+        0.8f, 0.75f, 0.0f,
+        0.8f, 0.67f, 0.0f,
+        0.65f, 0.67f, 0.0f
+    };
+    float posiciones4[9] = {
+        0.8f, 0.75f, 0.0f,
+        0.65f, 0.75f, 0.0f,
+        0.65f, 0.67f, 0.0f
+    };
     int segundos = 0,i;
     float n2 = 0, n3 = 0;
     float t = 0;
@@ -321,6 +342,12 @@ namespace Vars {
     "void main()\n"
     "{\n"
     "   FragColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);\n"
+    "}\n\0";
+    const char *fragmentShaderSource1 = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "   FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);\n"
     "}\n\0";
     SoLoud::Soloud soloud;
     SoLoud::handle h;
@@ -351,6 +378,16 @@ class electron
         -0.0f, 0.0f, 0.0f,
         -0.0f, 0.0f, 0.0f
     };
+            float destinox1[9] = {
+        -0.0f, 0.0f, 0.0f,
+        -0.0f, 0.0f, 0.0f,
+        -0.0f, 0.0f, 0.0f
+    };
+    float destinoy1[9] = {
+        -0.0f, 0.0f, 0.0f,
+        -0.0f, 0.0f, 0.0f,
+        -0.0f, 0.0f, 0.0f
+    };
         float posicionesbase2[9] = {
         -0.5f, 0.3f, 0.0f,
         -0.5f, -0.1f, 0.0f,
@@ -361,14 +398,39 @@ class electron
         -0.1f, 0.3f, 0.0f,
         -0.1f, -0.1f, 0.0f
     };
+    //
+    float posiciones5[9] = {
+        -0.4f, 0.25f, 0.0f,
+        -0.30f, 0.25f, 0.0f,
+        -0.4f, 0.20f, 0.0f
+    };
+    float posiciones4[9] = {
+        -0.4f, 0.20f, 0.0f,
+        -0.30f, 0.20f, 0.0f,
+        -0.30f, 0.25f, 0.0f
+    };
+    //
+    float posicionesbase4[9] = {
+        -0.4f, 0.20f, 0.0f,
+        -0.30f, 0.20f, 0.0f,
+        -0.30f, 0.25f, 0.0f
+    };
+    float posicionesbase5[9] = {
+        -0.4f, 0.25f, 0.0f,
+        -0.30f, 0.25f, 0.0f,
+        -0.4f, 0.20f, 0.0f
+    };
+    //
    unsigned int VBO2, VAO2;
     unsigned int VBO3, VAO3;
+    unsigned int VBO4, VAO4;
+    unsigned int VBO5, VAO5;
     float n2,n3;
     unsigned int vertexshader;
-    unsigned int fragmentshader;
-        unsigned int shaderProgram;
+    unsigned int fragmentshader, fragmentshader1;
+    unsigned int shaderProgram, shaderProgram1;
 
-        const char *vertexShaderSource = "#version 330 core\n"
+    const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
     "void main()\n"
     "{\n"
@@ -380,6 +442,12 @@ class electron
     "void main()\n"
     "{\n"
     "   FragColor = vec4(0.0f, 0.0f, 1.0f, 1.0f);\n"
+    "}\n\0";
+    const char *fragmentShaderSource1 = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "   FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);\n"
     "}\n\0";
     //fin de variables
     public:
@@ -403,24 +471,51 @@ class electron
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
+    //
+    glGenBuffers(1, &VBO4);
+    glGenVertexArrays(1, &VAO4);
+    glBindVertexArray(VAO4);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO4);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(posiciones4), posiciones4, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+
+    glGenBuffers(1, &VBO5);
+    glGenVertexArrays(1, &VAO5);
+    glBindVertexArray(VAO5);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO5);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(posiciones5), posiciones5, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+    //
     vertexshader = glCreateShader(GL_VERTEX_SHADER);
     fragmentshader = glCreateShader(GL_FRAGMENT_SHADER);
+    fragmentshader1 = glCreateShader(GL_FRAGMENT_SHADER);
+
     glShaderSource(vertexshader, 1, &vertexShaderSource, NULL);
     glShaderSource(fragmentshader, 1, &fragmentShaderSource, NULL);
-    
+    glShaderSource(fragmentshader1, 1, &fragmentShaderSource1, NULL);
+
     glCompileShader(fragmentshader);
     glCompileShader(vertexshader);
+    glCompileShader(fragmentshader1);
 
     shaderProgram = glCreateProgram();
+    shaderProgram1 = glCreateProgram();
 
     glAttachShader(shaderProgram, fragmentshader);
     glAttachShader(shaderProgram, vertexshader);
     glLinkProgram(shaderProgram);
-    
+    glAttachShader(shaderProgram1, fragmentshader1);
+    glAttachShader(shaderProgram1, vertexshader);
+    glLinkProgram(shaderProgram1);
 
     
     glDeleteShader(vertexshader);
     glDeleteShader(fragmentshader);
+    glDeleteShader(fragmentshader1);
 
 
              }
@@ -430,6 +525,12 @@ class electron
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(posiciones2), posiciones2);
         glBindBuffer(GL_ARRAY_BUFFER, VBO3);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(posiciones3), posiciones3);
+        //
+        glBindBuffer(GL_ARRAY_BUFFER, VBO4);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(posiciones4), posiciones4);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO5);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(posiciones5), posiciones5);
+        //
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO2);
         glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -438,7 +539,13 @@ class electron
         glBindVertexArray(VAO3);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
-        
+        glUseProgram(shaderProgram1);
+        glBindVertexArray(VAO4);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+        glBindVertexArray(VAO5);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
 }
 void actualizar_objetivo()
 {
@@ -456,6 +563,20 @@ void actualizar_objetivo()
             destinoy[4] = posicionesbase3[4] + n3;
             destinoy[6] = posicionesbase3[6] + n2;
             destinoy[7] = posicionesbase3[7] + n3;
+            //
+            destinox1[0] = posicionesbase4[0] + n2;
+            destinox1[1] = posicionesbase4[1] + n3;
+            destinox1[3] = posicionesbase4[3] + n2;
+            destinox1[4] = posicionesbase4[4] + n3;
+            destinox1[6] = posicionesbase4[6] + n2;
+            destinox1[7] = posicionesbase4[7] + n3;
+            destinoy1[0] = posicionesbase5[0] + n2;
+            destinoy1[1] = posicionesbase5[1] + n3;
+            destinoy1[3] = posicionesbase5[3] + n2;
+            destinoy1[4] = posicionesbase5[4] + n3;
+            destinoy1[6] = posicionesbase5[6] + n2;
+            destinoy1[7] = posicionesbase5[7] + n3;
+            //
 }
              void ir_a_posicion()
              {
@@ -579,6 +700,116 @@ void actualizar_objetivo()
             {
                 posiciones3[7] -= paso;
             }
+            //}efhiuhefsifsffshfhhdifhiushfhsefhuisfhiuehefiushfiusehfiusfsiejfiofhaddadawdwg
+            
+            if (posiciones4[0] < destinox1[0])
+            {
+                posiciones4[0] += paso;
+            }
+            if (posiciones4[0] > destinox1[0])
+            {
+                posiciones4[0] -= paso;
+            }
+            //
+            if (posiciones4[1] < destinox1[1])
+            {
+                posiciones4[1] += paso;
+            }
+            if (posiciones4[1] > destinox1[1])
+            {
+                posiciones4[1] -= paso;
+            }
+            //
+            if (posiciones4[3] < destinox1[3])
+            {
+                posiciones4[3] += paso;
+            }
+            if (posiciones4[3] > destinox1[3])
+            {
+                posiciones4[3] -= paso;
+            }
+            //
+            if (posiciones4[4] < destinox1[4])
+            {
+                posiciones4[4] += paso;
+            }
+            if (posiciones4[4] > destinox1[4])
+            {
+                posiciones4[4] -= paso;
+            }
+            //
+            if (posiciones4[6] < destinox1[6])
+            {
+                posiciones4[6] += paso;
+            }
+            if (posiciones4[6] > destinox1[6])
+            {
+                posiciones4[6] -= paso;
+            }
+            //
+            if (posiciones4[7] < destinox1[7])
+            {
+                posiciones4[7] += paso;
+            }
+            if (posiciones4[7] > destinox1[7])
+            {
+                posiciones4[7] -= paso;
+            }
+            //
+            if (posiciones5[0] < destinoy1[0])
+            {
+                posiciones5[0] += paso;
+            }
+            if (posiciones5[0] > destinoy1[0])
+            {
+                posiciones5[0] -= paso;
+            }
+            //
+            if (posiciones5[1] < destinoy1[1])
+            {
+                posiciones5[1] += paso;
+            }
+            if (posiciones5[1] > destinoy1[1])
+            {
+                posiciones5[1] -= paso;
+            }
+            //
+            if (posiciones5[3] < destinoy1[3])
+            {
+                posiciones5[3] += paso;
+            }
+            if (posiciones5[3] > destinoy1[3])
+            {
+                posiciones5[3] -= paso;
+            }
+            //
+            if (posiciones5[4] < destinoy1[4])
+            {
+                posiciones5[4] += paso;
+            }
+            if (posiciones5[4] > destinoy1[4])
+            {
+                posiciones5[4] -= paso;
+            }
+            //
+            if (posiciones5[6] < destinoy1[6])
+            {
+                posiciones5[6] += paso;
+            }
+            if (posiciones5[6] > destinoy1[6])
+            {
+                posiciones5[6] -= paso;
+            }
+            //
+            if (posiciones5[7] < destinoy1[7])
+            {
+                posiciones5[7] += paso;
+            }
+            if (posiciones5[7] > destinoy1[7])
+            {
+                posiciones5[7] -= paso;
+            }
+            //
         }
 };
 
@@ -1745,6 +1976,8 @@ juegitogl::posiciones3[7] = 0.8f;
  if (menu_opengl == 5)
  {
       
+    srand(time(0));
+    glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -2253,12 +2486,15 @@ if (err != GLEW_OK)
     
     Vars::vertexshader = glCreateShader(GL_VERTEX_SHADER);
     Vars::fragmentshader = glCreateShader(GL_FRAGMENT_SHADER);
+    Vars::fragmentshader1 = glCreateShader(GL_FRAGMENT_SHADER);
 
     glShaderSource(Vars::vertexshader, 1, &Vars::vertexShaderSource, NULL);
     glShaderSource(Vars::fragmentshader, 1, &Vars::fragmentShaderSource, NULL);
+    glShaderSource(Vars::fragmentshader1 , 1, &Vars::fragmentShaderSource1, NULL);
 
     glCompileShader(Vars::vertexshader);
     glCompileShader(Vars::fragmentshader);
+    glCompileShader(Vars::fragmentshader1);
 
     Vars::shaderProgram = glCreateProgram();
     Vars::shaderProgram1 = glCreateProgram();
@@ -2266,17 +2502,20 @@ if (err != GLEW_OK)
     glAttachShader(Vars::shaderProgram, Vars::fragmentshader);
     glAttachShader(Vars::shaderProgram, Vars::vertexshader);
     glLinkProgram(Vars::shaderProgram);
-    
+    glAttachShader(Vars::shaderProgram1, Vars::fragmentshader1);
+    glAttachShader(Vars::shaderProgram1, Vars::vertexshader);
+    glLinkProgram(Vars::shaderProgram1);
     
     glDeleteShader(Vars::vertexshader);
     glDeleteShader(Vars::fragmentshader);
+    glDeleteShader(Vars::fragmentshader1);
 
     //buffer things
     glGenBuffers(1, &Vars::VBO);
     glGenVertexArrays(1, &Vars::VAO);
     glBindVertexArray(Vars::VAO);
     glBindBuffer(GL_ARRAY_BUFFER, Vars::VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vars::posiciones), Vars::posiciones, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vars::posiciones), Vars::posiciones, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
@@ -2285,10 +2524,47 @@ if (err != GLEW_OK)
     glGenVertexArrays(1, &Vars::VAO1);
     glBindVertexArray(Vars::VAO1);
     glBindBuffer(GL_ARRAY_BUFFER, Vars::VBO1);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vars::posiciones1), Vars::posiciones1, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vars::posiciones1), Vars::posiciones1, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
+    //+
+    glGenBuffers(1, &Vars::VBO2);
+    glGenVertexArrays(1, &Vars::VAO2);
+    glBindVertexArray(Vars::VAO2);
+    glBindBuffer(GL_ARRAY_BUFFER, Vars::VBO2);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vars::posiciones2), Vars::posiciones2, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+
+    glGenBuffers(1, &Vars::VBO3);
+    glGenVertexArrays(1, &Vars::VAO3);
+    glBindVertexArray(Vars::VAO3);
+    glBindBuffer(GL_ARRAY_BUFFER, Vars::VBO3);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vars::posiciones3), Vars::posiciones3, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+    //
+        glGenBuffers(1, &Vars::VBO4);
+    glGenVertexArrays(1, &Vars::VAO4);
+    glBindVertexArray(Vars::VAO4);
+    glBindBuffer(GL_ARRAY_BUFFER, Vars::VBO4);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vars::posiciones4), Vars::posiciones4, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+
+    glGenBuffers(1, &Vars::VBO5);
+    glGenVertexArrays(1, &Vars::VAO5);
+    glBindVertexArray(Vars::VAO5);
+    glBindBuffer(GL_ARRAY_BUFFER, Vars::VBO5);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vars::posiciones5), Vars::posiciones5, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+    //
     Vars::sp.load("textovich.mp3");
     Vars::t = glfwGetTime();
     Vars::soloud.init();
@@ -2302,6 +2578,22 @@ if (err != GLEW_OK)
         glBindVertexArray(0);
         
         glBindVertexArray(Vars::VAO1);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+        glUseProgram(Vars::shaderProgram1);
+        glBindVertexArray(Vars::VAO2);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+        
+        glBindVertexArray(Vars::VAO3);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+        
+        glBindVertexArray(Vars::VAO4);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+        
+        glBindVertexArray(Vars::VAO5);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
         if (Vars::i >= 1)
@@ -2672,9 +2964,24 @@ if (err != GLEW_OK)
         {
             prueba92.drw();
         }
+        //
+        glUseProgram(Vars::shaderProgram1);
+        glBindVertexArray(Vars::VAO2);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
         
+        glBindVertexArray(Vars::VAO3);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
 
-        if ((glfwGetTime() - Vars::t) >= 0.75)
+        glBindVertexArray(Vars::VAO4);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+        
+        glBindVertexArray(Vars::VAO5);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+        if ((glfwGetTime() - Vars::t) >= 0.65)
         {
             Vars::segundos++;
             Vars::t = glfwGetTime();
@@ -3430,6 +3737,7 @@ if (err != GLEW_OK)
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
 
  }
  
