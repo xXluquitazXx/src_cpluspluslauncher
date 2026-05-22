@@ -1143,6 +1143,7 @@ while (true) {
   std::cout <<"2-triangulo que rebota"<<std::endl;
   std::cout <<"3-juego de ezquivar"<<std::endl;
   std::cout <<"4-juego de ezquivar 2.0"<<std::endl;
+  std::cout <<"5-atomos segun thompson"<<std::endl;
 
   std::cin>>menu_opengl;
 
