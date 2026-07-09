@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 lucas
+ * Copyright (C) 2026 lucas
  *
  * Este programa es software libre: puedes redistribuirlo y/o modificarlo
  * bajo los términos de la Licencia Pública General GNU publicada por la
@@ -28,6 +28,7 @@
 #include <vector>
 #include <algorithm>
 #include <arrayfire.h>
+#include "prod.cpp"
 #define WINVER 0x0A00
 #define _WIN32_WINNT 0x0A00
 #define CPPHTTPLIB_OPENSSL_SUPPORT
@@ -35,7 +36,6 @@
 #include "abc\soloud20200207\include\soloud.h"
 #include "abc\soloud20200207\include\soloud_wav.h"
 #include "abc\soloud20200207\include\soloud_thread.h" 
-
 namespace downloader
  {
  std::string nombre = "abc";
@@ -353,7 +353,7 @@ namespace Vars {
     SoLoud::handle h;
 }
 
-class electron
+class electrron
 {
   private:
     float velocidad = 1.0f;
@@ -813,7 +813,7 @@ void actualizar_objetivo()
         }
 };
 
-void cerrar_con_escape(GLFWwindow* window)
+void cerrrar_con_escape(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
@@ -826,7 +826,57 @@ void actualizarBuffer(unsigned int VBO, float* datos, int tamanioBytes)
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferSubData(GL_ARRAY_BUFFER, 0, tamanioBytes, datos);
 }
+ namespace visualizador
+    {
+        
+     // namespace visualizador
+    
+    const char *sorf = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "layout (location = 1) in vec3 aColor;\n"
+    "layout (location = 2) in vec2 aTexCoord;\n"
+    "out vec3 ourColor;\n"
+    "out vec2 TexCoord;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos, 1.0);\n"
+    "ourColor = aColor;\n"
+    "TexCoord = vec2(aTexCoord.x,aTexCoord.y);\n"
+    "}\0";
+    
+    const char *sourv = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "in vec3 ourColor;\n"
+    "in vec2 TexCoord;\n"
+    "uniform sampler2D texture1;\n"
 
+    "void main()\n"
+    "{\n"
+    "   FragColor = texture(texture1, TexCoord);\n"
+    "}\n\0";
+    unsigned int vbo,vao,shadep,verter,fragme,vbo1,vao1;
+    float poscicion[24] = {
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+        };
+GLFWwindow* window;
+unsigned int texture,texura;
+int wi,hi,nr,looc;
+unsigned char *a;
+    float posi[24] = {
+         -0.5f, - 0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f, // top right
+         -0.5f, 0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // bottom right
+        0.5f, 0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // bottom left
+        };
+        int loc;
+            int width, height, nrChannels;
+
+const char* nome = "ver imagenes";
+ std::string rutinga;
+ const std::string nada;
+    }
+    
 int main(void) {
    std::cout<<"loading: this can take a while"<<std::endl;
     int menu_principal = 67;
@@ -1992,98 +2042,98 @@ juegitogl::posiciones3[7] = 0.8f;
         break;
     }
     }
-    electron prueba1;
-    electron prueba2;
-    electron prueba3;
-    electron prueba4;
-    electron prueba5;
-    electron prueba6;
-    electron prueba7;
-    electron prueba8;
-    electron prueba9;
-    electron prueba10;
-    electron prueba11;
-    electron prueba12;
-    electron prueba13;
-    electron prueba14;
-    electron prueba15;
-    electron prueba16;
-    electron prueba17;
-    electron prueba18;
-    electron prueba19;
-    electron prueba20;
-    electron prueba21;
-    electron prueba22;
-    electron prueba23;
-    electron prueba24;
-    electron prueba25;
-    electron prueba26;
-    electron prueba27;
-    electron prueba28;
-    electron prueba29;
-    electron prueba30;
-    electron prueba31;
-    electron prueba32;
-    electron prueba33;
-    electron prueba34;
-    electron prueba35;
-    electron prueba36;
-    electron prueba37;
-    electron prueba38;
-    electron prueba39;
-    electron prueba40;
-    electron prueba41;
-    electron prueba42;
-    electron prueba43;
-    electron prueba44;
-    electron prueba45;
-    electron prueba46;
-    electron prueba47;
-    electron prueba48;
-    electron prueba49;
-    electron prueba50;
-    electron prueba51;
-    electron prueba52;
-    electron prueba53;
-    electron prueba54;
-    electron prueba55;
-    electron prueba56;
-    electron prueba57;
-    electron prueba58;
-    electron prueba59;
-    electron prueba60;
-    electron prueba61;
-    electron prueba62;
-    electron prueba63;
-    electron prueba64;
-    electron prueba65;
-    electron prueba66;
-    electron prueba67;
-    electron prueba68;
-    electron prueba69;
-    electron prueba70;
-    electron prueba71;
-    electron prueba72;
-    electron prueba73;
-    electron prueba74;
-    electron prueba75;
-    electron prueba76;
-    electron prueba77;
-    electron prueba78;
-    electron prueba79;
-    electron prueba80;
-    electron prueba81;
-    electron prueba82;
-    electron prueba83;
-    electron prueba84;
-    electron prueba85;
-    electron prueba86;
-    electron prueba87;
-    electron prueba88;
-    electron prueba89;
-    electron prueba90;
-    electron prueba91;
-    electron prueba92;
+    electrron prueba1;
+    electrron prueba2;
+    electrron prueba3;
+    electrron prueba4;
+    electrron prueba5;
+    electrron prueba6;
+    electrron prueba7;
+    electrron prueba8;
+    electrron prueba9;
+    electrron prueba10;
+    electrron prueba11;
+    electrron prueba12;
+    electrron prueba13;
+    electrron prueba14;
+    electrron prueba15;
+    electrron prueba16;
+    electrron prueba17;
+    electrron prueba18;
+    electrron prueba19;
+    electrron prueba20;
+    electrron prueba21;
+    electrron prueba22;
+    electrron prueba23;
+    electrron prueba24;
+    electrron prueba25;
+    electrron prueba26;
+    electrron prueba27;
+    electrron prueba28;
+    electrron prueba29;
+    electrron prueba30;
+    electrron prueba31;
+    electrron prueba32;
+    electrron prueba33;
+    electrron prueba34;
+    electrron prueba35;
+    electrron prueba36;
+    electrron prueba37;
+    electrron prueba38;
+    electrron prueba39;
+    electrron prueba40;
+    electrron prueba41;
+    electrron prueba42;
+    electrron prueba43;
+    electrron prueba44;
+    electrron prueba45;
+    electrron prueba46;
+    electrron prueba47;
+    electrron prueba48;
+    electrron prueba49;
+    electrron prueba50;
+    electrron prueba51;
+    electrron prueba52;
+    electrron prueba53;
+    electrron prueba54;
+    electrron prueba55;
+    electrron prueba56;
+    electrron prueba57;
+    electrron prueba58;
+    electrron prueba59;
+    electrron prueba60;
+    electrron prueba61;
+    electrron prueba62;
+    electrron prueba63;
+    electrron prueba64;
+    electrron prueba65;
+    electrron prueba66;
+    electrron prueba67;
+    electrron prueba68;
+    electrron prueba69;
+    electrron prueba70;
+    electrron prueba71;
+    electrron prueba72;
+    electrron prueba73;
+    electrron prueba74;
+    electrron prueba75;
+    electrron prueba76;
+    electrron prueba77;
+    electrron prueba78;
+    electrron prueba79;
+    electrron prueba80;
+    electrron prueba81;
+    electrron prueba82;
+    electrron prueba83;
+    electrron prueba84;
+    electrron prueba85;
+    electrron prueba86;
+    electrron prueba87;
+    electrron prueba88;
+    electrron prueba89;
+    electrron prueba90;
+    electrron prueba91;
+    electrron prueba92;
 if (!glfwInit())
 {
     std::cout << "fallo glfwInit\n";
@@ -3906,6 +3956,8 @@ if (err != GLEW_OK)
     std::cout<<"2-generador de claves aleatorias"<<std::endl;
     std::cout<<"3-reproductor de musica"<<std::endl;
     std::cout<<"4-separar y unir archivos"<<std::endl;
+        std::cout<<"5-ver fotos"<<std::endl;
+
     std::cin>>menu_tools;
    if (menu_tools == 1)
     {
@@ -4204,7 +4256,65 @@ if (err != GLEW_OK)
     delete[] read4;
  }
   }
-  
+  if (menu_tools == 5)
+  {
+    while(true){
+ std::cout<<"pone una ruta valida de imagen ej:"<<"C:\\Users\\User\\Downloads\\foto_perfil.png"<<std::endl;
+ std::getline(std::cin,visualizador::rutinga);
+ if (visualizador::rutinga != visualizador::nada)
+ {
+   break;
+ }
+ 
+    }
+iniciar_glfw_y_glew(visualizador::window,1360,768,3,visualizador::nome);
+generarbuffers(visualizador::vbo,visualizador::vao,visualizador::poscicion,24,false);
+generarbuffers(visualizador::vbo1,visualizador::vao1,visualizador::posi,24,false);
+generarshader(visualizador::shadep,visualizador::verter,visualizador::fragme,visualizador::sorf,visualizador::sourv);
+
+textura(visualizador::rutinga.c_str(),visualizador::texura,visualizador::shadep,visualizador::wi,visualizador::hi,visualizador::nr,visualizador::a,visualizador::looc);
+
+glGenTextures(1, &visualizador::texture);
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D,visualizador::texture);
+glUseProgram(visualizador::shadep);
+ visualizador::loc = glGetUniformLocation(visualizador::shadep, "texture1");
+printf("loc=%d\n", visualizador::loc);
+glUniform1i(glGetUniformLocation(visualizador::shadep,"texture1"),0);
+glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+stbi_set_flip_vertically_on_load(true);   
+unsigned char *datarda = stbi_load(visualizador::rutinga.c_str(), &visualizador::width,&visualizador::height,&visualizador::nrChannels,0);
+
+if (!datarda)
+{
+    printf("Error: %s\n", stbi_failure_reason());
+}
+else
+{
+    printf("w=%d h=%d c=%d\n", visualizador::width, visualizador::height, visualizador::nrChannels);
+}
+glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,visualizador::width,visualizador::height,0,GL_RGB,GL_UNSIGNED_BYTE,datarda);
+printf("error=%d\n", glGetError());
+
+glGenerateMipmap(GL_TEXTURE_2D);
+stbi_image_free(datarda);
+while (!glfwWindowShouldClose(visualizador::window))
+{
+    glClear(GL_COLOR_BUFFER_BIT);   
+    glBindTexture(GL_TEXTURE_2D, visualizador::texture);
+
+     drw(false,visualizador::vbo,visualizador::vao,visualizador::shadep,3,24,visualizador::poscicion,GL_TRIANGLES);
+     glBindTexture(GL_TEXTURE_2D, visualizador::texura);
+
+    drw(false,visualizador::vbo1,visualizador::vao1,visualizador::shadep,3,24,visualizador::posi,GL_TRIANGLES);
+      framebuffer_size_callback(visualizador::window,1360,768);                                                                     
+      glfwSwapBuffers(visualizador::window);
+      glfwPollEvents();
+}}
  }
  if (menu_principal == 0)
  {
