@@ -17,6 +17,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <cstdio>
 #include <winsock2.h>
 #include <windows.h>
 #include "glew.h" 
@@ -78,6 +79,8 @@ namespace configuracion
   unsigned char uns = 111;
   char rdbyt1;
   char rdbyt2;
+    char rdbyt3;
+
   unsigned char unse = 112;
   int readed = 0;
   SoLoud::handle h;
@@ -876,6 +879,114 @@ const char* nome = "ver imagenes";
  std::string rutinga;
  const std::string nada;
     }
+    namespace fla
+    {
+        // Cuadrante superior derecho
+float tuberia_arriba[48] = {
+    // Triángulo 1
+     0.90f,  1.00f, 0.0f, 1,0,0, 0,1,
+     1.10f,  1.00f, 0.0f, 0,1,0, 1,1,
+     1.10f,  0.30f, 0.0f, 0,0,1, 1,0,
+
+    // Triángulo 2
+     0.90f,  1.00f, 0.0f, 1,0,0, 0,1,
+     0.90f,  0.30f, 0.0f, 0,1,0, 0,0,
+     1.10f,  0.30f, 0.0f, 0,0,1, 1,0
+};
+float tuberia_abajo[48] = {
+    // Triángulo 1
+     0.90f, -0.30f, 0.0f, 1,0,0, 0,1,
+     1.10f, -0.30f, 0.0f, 0,1,0, 1,1,
+     1.10f, -1.00f, 0.0f, 0,0,1, 1,0,
+
+    // Triángulo 2
+     0.90f, -0.30f, 0.0f, 1,0,0, 0,1,
+     0.90f, -1.00f, 0.0f, 0,1,0, 0,0,
+     1.10f, -1.00f, 0.0f, 0,0,1, 1,0
+};
+float tuberia_arriba_original[48] = {
+    // Triángulo 1
+     0.90f,  1.00f, 0.0f, 1,0,0, 0,1,
+     1.10f,  1.00f, 0.0f, 0,1,0, 1,1,
+     1.10f,  0.30f, 0.0f, 0,0,1, 1,0,
+
+    // Triángulo 2
+     0.90f,  1.00f, 0.0f, 1,0,0, 0,1,
+     0.90f,  0.30f, 0.0f, 0,1,0, 0,0,
+     1.10f,  0.30f, 0.0f, 0,0,1, 1,0
+};
+float tuberia_abajo_original[48] = {
+    // Triángulo 1
+     0.90f, -0.30f, 0.0f, 1,0,0, 0,1,
+     1.10f, -0.30f, 0.0f, 0,1,0, 1,1,
+     1.10f, -1.00f, 0.0f, 0,0,1, 1,0,
+
+    // Triángulo 2
+     0.90f, -0.30f, 0.0f, 1,0,0, 0,1,
+     0.90f, -1.00f, 0.0f, 0,1,0, 0,0,
+     1.10f, -1.00f, 0.0f, 0,0,1, 1,0
+};
+float poop[48] = {
+    // Triángulo 1
+    -1.0f,-0.8f,0.0f, 1,0,0, 0,1,
+     1.0f,-0.8f,0.0f, 0,1,0, 1,1,
+     1.0f,-1.0f,0.0f, 0,0,1, 1,0,
+
+    // Triángulo 2
+    -1.0f,-0.8f,0.0f, 1,0,0, 0,1,
+    -1.0f,-1.0f,0.0f, 0,1,0, 0,0,
+     1.0f,-1.0f,0.0f, 0,0,1, 1,0
+};
+
+    /* Original brrskibidy (commented out):
+    float brrskibidy[48] = {
+        -0.80f,  0.10f, 0.0f, 1,0,0, 0,1,
+        -0.65f,  0.10f, 0.0f, 0,1,0, 1,1,
+        -0.65f, -0.10f, 0.0f, 0,0,1, 1,0,
+        
+        // Triángulo 2
+        -0.80f,  0.10f, 0.0f, 1,0,0, 0,1,
+        -0.80f, -0.10f, 0.0f, 0,1,0, 0,0,
+        -0.65f, -0.10f, 0.0f, 0,0,1, 1,0
+    };
+    */
+// Mantener la abertura en una zona segura para que el personaje siempre pueda pasar.
+float n = -0.16f + (float)rand() / RAND_MAX * 0.32f;
+int algo;
+float reloj;
+int points = 0;
+    // Corrected brrskibidy with consistent winding (both triangles CW)
+    float brrskibidy[48] = {
+        // Triángulo 1
+        -0.80f,  0.10f, 0.0f, 1,0,0, 0,1,
+        -0.65f,  0.10f, 0.0f, 0,1,0, 1,1,
+        -0.65f, -0.10f, 0.0f, 0,0,1, 1,0,
+        // Triángulo 2 (reordered to match winding)
+        -0.80f,  0.10f, 0.0f, 1,0,0, 0,1,
+        -0.65f, -0.10f, 0.0f, 0,0,1, 1,0,
+        -0.80f, -0.10f, 0.0f, 0,1,0, 0,0
+    };
+     float pooop[48] = {    -1.0f,  1.0f, 0.0f,   1,1,1,   0,1,
+     1.0f,  1.0f, 0.0f,   1,1,1,   1,1,
+     1.0f, -1.0f, 0.0f,   1,1,1,   1,0,
+
+    // Triángulo 2
+    -1.0f,  1.0f, 0.0f,   1,1,1,   0,1,
+    -1.0f, -1.0f, 0.0f,   1,1,1,   0,0, // 32,33
+     1.0f, -1.0f, 0.0f,   1,1,1,   1,0 // 40 41
+
+   };
+// Cuadrante inferior derecho
+    bloquete skibidy;
+    bloquete tuberia_ap;
+    bloquete fondaso;
+    bool nuerto = false,cocolisionmelon = false,skibidycolision = false;
+    bloquete tuberia_dawn;
+    personaje toilet;
+    GLFWwindow* window;
+float velocidad = 0.0006;
+    const char* rutardopolis = "flapy bodrio";
+    } // namespace fla
     
 int main(void) {
    std::cout<<"loading: this can take a while"<<std::endl;
@@ -943,7 +1054,15 @@ int main(void) {
     if (configuracion::rdbyt2 == configuracion::unse or configuracion::rdbyt2 == 0)
     {
       configuracion::rdbyt2 = 0;
-    }
+    } 
+    // el puto record del puto flapy
+        configuracion::conf.seekg(configuracion::readed, configuracion::conf.beg);
+    configuracion::conf.read(&configuracion::rdbyt3, 1);
+    configuracion::readed++;
+  
+      
+    
+    //
     if (configuracion::rdbyt2 == 1)
     {
 
@@ -1194,6 +1313,7 @@ while (true) {
   std::cout <<"3-juego de ezquivar"<<std::endl;
   std::cout <<"4-juego de ezquivar 2.0"<<std::endl;
   std::cout <<"5-atomos segun thompson"<<std::endl;
+  std::cout<<"6-flappy bodrio con una sola textura(sus.png en los archivos)"<<std::endl;
 
   std::cin>>menu_opengl;
 
@@ -1283,7 +1403,7 @@ while (true) {
     glfwMakeContextCurrent(window);
     if (glewInit() != GLEW_OK)
      {
-       std::cout<<"susamongustoilet";
+       std::cout<<"susamongusfla::toilet";
      }
 
 
@@ -1438,7 +1558,7 @@ while (true) {
     glfwMakeContextCurrent(window);
     if (glewInit() != GLEW_OK)
      {
-       std::cout<<"susamongustoilet";
+       std::cout<<"susamongusfla::toilet";
      }
         glGenBuffers(1, &mov::buffminer);//generar bufer
         glBindBuffer(GL_ARRAY_BUFFER, mov::buffminer);//definir tipo de bufer creo
@@ -3793,8 +3913,73 @@ if (err != GLEW_OK)
  }
  
 
+if (menu_opengl == 6)
+{    iniciar_glfw_y_glew(fla::window,1360,768,3,fla::rutardopolis);
+    fla::fondaso.config(false,"sus.png",fla::pooop);
+    fla::tuberia_ap.config(true,"sus.png",fla::tuberia_arriba);
+    fla::tuberia_dawn.config(true,"sus.png",fla::tuberia_abajo);
+    fla::skibidy.config(false,"sus.png",fla::poop);
+    fla::toilet.config("sus.png",fla::brrskibidy);
+reproducir_audio("musica_arabe.wav");
+while (!glfwWindowShouldClose(fla::window))
+ {
+    glClear(GL_COLOR_BUFFER_BIT);
+    fla::fondaso.drwa();
+ fla::skibidy.drwa();
+   temporisador(13.0f,fla::reloj,fla::algo);
+   if (fla::algo > 0)
+   {
+    reproducir_audio("musica_arabe.wav");fla::algo = 0;
+   }
+   
+     fla::toilet.drwp();
+    fla::tuberia_ap.drwa();
+    fla::tuberia_dawn.drwa();
+ fla::tuberia_ap.actualizar_array(fla::tuberia_arriba,false);
+ fla::tuberia_dawn.actualizar_array(fla::tuberia_abajo,false);
+    // Debug: comprobar errores GL después de dibujar fla::tuberias
+        fla::toilet.mover_w(fla::window,fla::velocidad,0.8);
+fla::toilet.loop_flapy_version(true,0.0002,-0.8,0.0,fla::nuerto,fla::brrskibidy);
+ if (fla::tuberia_arriba[0] <= -1.0)
+ {reproducir_audio("tirin.wav");
+fla::n = -0.32f + (float)rand() / RAND_MAX * 0.64f;
+fla::tuberia_abajo[0] = fla::tuberia_abajo_original[0];fla::tuberia_abajo[1] = fla::tuberia_abajo_original[1];fla::tuberia_abajo[8] = fla::tuberia_abajo_original[8];fla::tuberia_abajo[9] = fla::tuberia_abajo_original[9];fla::tuberia_abajo[16] = fla::tuberia_abajo_original[16];fla::tuberia_abajo[17] = fla::tuberia_abajo_original[17];   fla::tuberia_abajo[24] = fla::tuberia_abajo_original[24];fla::tuberia_abajo[25] = fla::tuberia_abajo_original[25];fla::tuberia_abajo[32] = fla::tuberia_abajo_original[32];fla::tuberia_abajo[33] = fla::tuberia_abajo_original[33];fla::tuberia_abajo[40] = fla::tuberia_abajo_original[40];fla::tuberia_abajo[41] = fla::tuberia_abajo_original[41];
+
+fla::tuberia_arriba[0] = fla::tuberia_arriba_original[0];fla::tuberia_arriba[1] = fla::tuberia_arriba_original[1];fla::tuberia_arriba[8] = fla::tuberia_arriba_original[8];fla::tuberia_arriba[9] = fla::tuberia_arriba_original[9];fla::tuberia_arriba[16] = fla::tuberia_arriba_original[16];fla::tuberia_arriba[17] = fla::tuberia_arriba_original[17];fla::tuberia_arriba[24] = fla::tuberia_arriba_original[24];fla::tuberia_arriba[25] = fla::tuberia_arriba_original[25];fla::tuberia_arriba[32] = fla::tuberia_arriba_original[32];fla::tuberia_arriba[33] = fla::tuberia_arriba_original[33];fla::tuberia_arriba[40] = fla::tuberia_arriba_original[40];fla::tuberia_arriba[41] = fla::tuberia_arriba_original[41];
 
 
+fla::tuberia_abajo[1] += fla::n;fla::tuberia_abajo[9] += fla::n;fla::tuberia_abajo[25] += fla::n;
+
+fla::tuberia_arriba[17] += fla::n;fla::tuberia_arriba[33] += fla::n;fla::tuberia_arriba[41] += fla::n;
+
+fla::tuberia_ap.actualizar_array(fla::tuberia_arriba,true);
+fla::tuberia_dawn.actualizar_array(fla::tuberia_abajo,true);
+fla::points++;
+if (fla::points > configuracion::mscfnd)
+{
+configuracion::mscfnd = fla::points;
+printf("nuevo record \n");   configuracion::conf.seekp(2);
+   configuracion::conf.clear();
+    configuracion::conf.write(reinterpret_cast<const char*>(&configuracion::mscfnd), sizeof(configuracion::mscfnd));
+    configuracion::conf.flush();
+}
+
+ }
+else
+{ 
+    fla::tuberia_ap.movete(false,-1.0,0.0,0.00004,fla::tuberia_arriba);
+        fla::tuberia_dawn.movete(false,-1.0,0.0,0.00004,fla::tuberia_abajo);
+
+}
+ 
+ fla::tuberia_ap.colision(fla::brrskibidy,fla::cocolisionmelon,0.02,true);
+  fla::tuberia_dawn.colision(fla::brrskibidy,fla::skibidycolision,0.02,false);
+    if (fla::nuerto or fla::cocolisionmelon or fla::skibidycolision) {reproducir_audio("muerte.wav");glfwSetWindowShouldClose(fla::window,true);break;}
+ cerrar_con_escape(fla::window);
+    framebuffer_size_callback(fla::window,1360,768);
+    glfwSwapBuffers(fla::window);
+    glfwPollEvents();
+ }}
 
   }
   if (menu_principal == 3)
@@ -3873,8 +4058,8 @@ if (err != GLEW_OK)
   {
     system("cls");
     std::cout<<"perdiste que manco voy a crear una carpeta con archivos adentro que digan cosas medio sus";
-    system("mkdir sustoiletamongusskibidy");
-    system("cd sustoiletamongusskibidy");
+    system("mkdir sus toiletamongusskibidy");
+    system("cd sus toiletamongusskibidy");
     system("echo skibidy toilet sigma pobni chamba sus free fornite aura skibidy minecraft bobicraft minimini hot >> u_lose_in_my_fnaf_lololol.txt");
     system("cls");
     lose = true;
@@ -4384,5 +4569,7 @@ while (!glfwWindowShouldClose(visualizador::window))
    
     return 0;
 }
+
+
 
 
