@@ -9,6 +9,10 @@
 #include <cstdlib>
 #include <ctime>
 #include <cstring>
+#include <chrono>
+#include <thread>
+#include <cmath> 
+
 //drw
 void cerrar_con_escape(GLFWwindow*  window)
 {
@@ -19,35 +23,36 @@ void cerrar_con_escape(GLFWwindow*  window)
 }
 void textura(const char* ruta,unsigned int& texture,unsigned int shaderProgram,int width , int height, int nrChannels,unsigned char *data,int& loc)
 {
-glGenTextures(1, &texture);
-glActiveTexture(GL_TEXTURE0);
-glBindTexture(GL_TEXTURE_2D,texture);
-glUseProgram(shaderProgram);
- loc = glGetUniformLocation(shaderProgram, "texture1");
-glUniform1i(glGetUniformLocation(shaderProgram,"texture1"),0);
-glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+    stbi_set_flip_vertically_on_load(true);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-stbi_set_flip_vertically_on_load(true);   
+    data = stbi_load(ruta, &width, &height, &nrChannels, 4);
+    if (!data)
+    {
+        printf("Error: %s\n", stbi_failure_reason());
+        return;
+    }
 
-data = stbi_load(ruta, &width,&height,&nrChannels,0);
+    glGenTextures(1, &texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
 
-if (!data)
-{
-    printf("Error: %s\n", stbi_failure_reason());
-}
-GLenum formato = GL_RGB;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-if (nrChannels == 4)
-    formato = GL_RGBA;
+    GLenum formato = GL_RGBA;
+    glTexImage2D(GL_TEXTURE_2D, 0, formato, width, height, 0, formato, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
-glTexImage2D(GL_TEXTURE_2D,0,formato,width,height,0,formato,GL_UNSIGNED_BYTE,data);
+    glUseProgram(shaderProgram);
+    loc = glGetUniformLocation(shaderProgram, "texture1");
+    glUniform1i(loc, 0);
 
-glGenerateMipmap(GL_TEXTURE_2D);
-stbi_image_free(data);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    stbi_image_free(data);
 }
 void actualizarBuffer( unsigned int& VBO, float* datos, int tamanioBytes)
 {
@@ -214,7 +219,10 @@ glDebugMessageCallback(debugCallback, nullptr);
 void reproducir_audio(const char* nombre_del_wav)
 {
  PlaySound( nombre_del_wav , NULL , SND_FILENAME | SND_ASYNC );
-
+}
+void parar_audio()
+{
+    PlaySound(NULL,NULL, SND_PURGE);
 }
 void mover(float* origen, float* destino, float x, float y)
 {
@@ -1581,7 +1589,7 @@ float  y_mouse;double mouseX;
 float    borde_izq;
 float    borde_der;
 float borde_arriba;
-float  borde_abajo;
+    float  borde_abajo,r = 0.0f;
     unsigned int textrue,shadeee,vertex,frsfk,texture,vbo,vbo1,vao,vao1;
     
     const char *sorf = "#version 330 core\n"
@@ -1619,7 +1627,7 @@ float  borde_abajo;
         };
         float destino1[9] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
         float destino2[9] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-    int wi,wa,nr,lo;
+    int wi,wa,nr,lo,com = 0;
     bool dynamci;
     unsigned char* da;
 public:
@@ -1718,6 +1726,7 @@ void movete(bool tp,float x,float y,float paso,float* posiciones)
     
     
 }
+
 void drwa()
 {
     glBindTexture(GL_TEXTURE_2D,textrue);
@@ -1743,7 +1752,7 @@ void detectar_colision_4_lados(bool& colision_abajo,bool& colision_arriba, bool&
            maximo_eje_y = std::max(std::max(posicione_detectar[1], posicione_detectar[9] ),posicione_detectar[17]);
          //
      // ARRIBA: si el jugador está debajo (minimo_eje_y < arriba_posici) y se acerca al techo del bloque
-     if (minimo_eje_y < arriba_posici && minimo_eje_y + 0.1 >= arriba_posici && minimo_eje_x < der_posici && maximo_eje_x > izq_posici)
+     if (maximo_eje_y >= abajo_posici && minimo_eje_y < abajo_posici && minimo_eje_x < der_posici && maximo_eje_x > izq_posici)
      {
 colision_arriba = true;     }
 else
@@ -1751,7 +1760,7 @@ else
     colision_arriba = false;
 }
 // DERECHA: si el jugador está a la izquierda (minimo_eje_x < der_posici) y se acerca al lado derecho del bloque
-if (minimo_eje_x < der_posici && minimo_eje_x + 0.1 >= der_posici && minimo_eje_y < arriba_posici && maximo_eje_y > abajo_posici)
+if (minimo_eje_x <= der_posici && maximo_eje_x > der_posici && minimo_eje_y < arriba_posici && maximo_eje_y > abajo_posici)
 {
     colision_derecha = true;
 }
@@ -1760,7 +1769,7 @@ else
     colision_derecha = false;
 }
 // IZQUIERDA: si el jugador está a la derecha (maximo_eje_x > izq_posici) y se acerca al lado izquierdo del bloque
-if (maximo_eje_x > izq_posici && maximo_eje_x - 0.1 <= izq_posici && minimo_eje_y < arriba_posici && maximo_eje_y > abajo_posici)
+if (maximo_eje_x >= izq_posici && minimo_eje_x < izq_posici && minimo_eje_y < arriba_posici && maximo_eje_y > abajo_posici)
 {
 colision_izq = true;}
 else
@@ -1768,7 +1777,7 @@ else
     colision_izq = false;
 }
 // ABAJO: si el jugador está arriba (maximo_eje_y > abajo_posici) y se acerca al piso del bloque
-if (maximo_eje_y > abajo_posici && maximo_eje_y - 0.1 <= abajo_posici && minimo_eje_x < der_posici && maximo_eje_x > izq_posici)
+if (minimo_eje_y <= arriba_posici && maximo_eje_y > arriba_posici && minimo_eje_x < der_posici && maximo_eje_x > izq_posici)
 {
 colision_abajo = true;
 }
@@ -1801,28 +1810,75 @@ else {
         else
         {posici1[i - 24] = posiciones_ext[i];} } }
 }
+void altura_random(float alt_max,float alt_min,float& numero_generado)
+{
+    numero_generado = alt_min + (float)rand() / RAND_MAX * (alt_max - (alt_min));// numero aleatorio con coma
+    posici[1] = numero_generado;posici[9] = numero_generado;posici1[1] = numero_generado;}
+    //si "que_lado_randomisar" es 0 randomisa el lado de arriba. si es 1 randomisa abajo. si es 2 derecha y 3 para izquierda
+    void lado_random(int que_lado_randomisar,float num_max,float num_min,float numero_generado)
+    {
+        if (que_lado_randomisar == 0)//arriba
+        {
+            numero_generado = num_min + (float)rand() / RAND_MAX * (num_max - (num_min));// numero aleatorio con coma
+    posici[1] = numero_generado;posici[9] = numero_generado;posici1[1] = numero_generado;        }
+      if (que_lado_randomisar == 1)
+      {
+                numero_generado = num_min + (float)rand() / RAND_MAX * (num_max - (num_min));
+                posici[17] = numero_generado;posici1[9] = numero_generado;posici1[17] = numero_generado;
+      }
+      if (que_lado_randomisar == 2)
+      {
+                numero_generado = num_min + (float)rand() / RAND_MAX * (num_max - (num_min));
+posici[8] = numero_generado;posici[16] = numero_generado;posici1[16] = numero_generado;
+      }
+      if (que_lado_randomisar == 3)
+      {
+                numero_generado = num_min + (float)rand() / RAND_MAX * (num_max - (num_min));
+posici[0] = numero_generado;posici1[0] = numero_generado;posici1[8] = numero_generado;
+      }
+      
+      
+
+    }
+    void cambiar_textura(const char* ruta_a_la_tex)
+{    textura(ruta_a_la_tex,textrue,shadeee,wi,wa,nr,da,lo);
+}
+void idle(float intervalo,const char* sprite1,const char* sprite2,bloquete& bloquete)
+{
+    if (intervalo <= 0.0f)
+    {
+        return;
+    }
+
+    temporisador(intervalo, r, com);
+    if (com > 0)
+    {
+        bloquete.cambiar_textura((com % 2) == 1 ? sprite2 : sprite1);
+    }
+}
 void modo_boton(GLFWwindow* window,int GLFW_MOUSE_BUTTON,bool& press)
 {
-
-
     borde_izq = std::min(std::min(std::min(std::min(std::min(posici[0],posici[8]),posici[16]),posici1[0]),posici1[8]),posici1[16]);
     borde_der = std::max(std::max(std::max(std::max(std::max(posici[0],posici[8]),posici[16]),posici1[0]),posici1[8]),posici1[16]);
- borde_arriba = std::min(std::min(std::min(std::min(std::min(posici[1],posici[9]),posici[17]),posici1[1]),posici1[9]),posici1[17]);
-  borde_abajo = std::max(std::max(std::max(std::max(std::max(posici[1],posici[9]),posici[17]),posici1[1]),posici1[9]),posici1[17]);
+ borde_arriba = std::max(std::max(std::max(std::max(std::max(posici[1],posici[9]),posici[17]),posici1[1]),posici1[9]),posici1[17]);
+  borde_abajo = std::min(std::min(std::min(std::min(std::min(posici[1],posici[9]),posici[17]),posici1[1]),posici1[9]),posici1[17]);
 
     input_mouse(window, GLFW_MOUSE_BUTTON,press);
     glfwGetCursorPos(window, &mouseX, &mouseY);
 
  x_mouse = (mouseX / 1360.0f) * 2.0f - 1.0f;
  y_mouse = 1.0f - (mouseY / 768.0f) * 2.0f;
-  x_mouse = (mouseX / 1360.0f) * 2.0f - 1.0f;
- y_mouse = 1.0f - (mouseY / 768.0f) * 2.0f;
+
+
 input_mouse(window,GLFW_MOUSE_BUTTON_LEFT,clik);
-if (x_mouse >= borde_izq and x_mouse <= borde_der and y_mouse >= borde_abajo and y_mouse <= borde_arriba and clik and press == false)
+if (x_mouse >= borde_izq and x_mouse <= borde_der and y_mouse >= borde_abajo and y_mouse <= borde_arriba and clik)
 {
  press = true;}
 
-}
+
+
+else
+{press = false;}}
 };
  
 void mover_wasd(GLFWwindow* window,float*& posiciones,bool press,float velocidad)
@@ -1860,14 +1916,25 @@ private:
     -0.65f,  0.10f, 0.0f, 0,1,0, 1,1,
     -0.65f, -0.10f, 0.0f, 0,0,1, 1,0
     };
-
+bool abajo = false,arriba = false,derecha = false,izq = false;
 
     float posiciones1[24] = {
     // Triángulo 2
     -0.80f,  0.10f, 0.0f, 1,0,0, 0,1,
     -0.80f, -0.10f, 0.0f, 0,1,0, 0,0,
     -0.65f, -0.10f, 0.0f, 0,0,1, 1,0};
-     
+     float posiciones_48[48] = {-0.80f,  0.10f, 0.0f, 1,0,0, 0,1,
+    -0.65f,  0.10f, 0.0f, 0,1,0, 1,1,
+    -0.65f, -0.10f, 0.0f, 0,0,1, 1,0,  // Triángulo 2
+    -0.80f,  0.10f, 0.0f, 1,0,0, 0,1,
+    -0.80f, -0.10f, 0.0f, 0,1,0, 0,0,
+    -0.65f, -0.10f, 0.0f, 0,0,1, 1,0};
+    float posiciones_48_caja_detectar[48] = {0.00f,  0.00f, 0.0f, 1,0,0, 0,1,
+    0.00f,  0.00f, 0.0f, 0,1,0, 1,1,
+    0.00f, 0.00f, 0.0f, 0,0,1, 1,0,  // Triángulo 2
+    0.00f, 0.00f, 0.0f, 1,0,0, 0,1,
+    0.00f, 0.00f, 0.0f, 0,1,0, 0,0,
+    0.00f, 0.00f, 0.0f, 0,0,1, 1,0};
     unsigned int textrue,shadeee,vertex,frsfk,texture,vbo,vbo1,vao,vao1;
     bool keyprees;
      char *sorf = "#version 330 core\n"
@@ -1893,9 +1960,28 @@ private:
     "   FragColor = texture(texture1, TexCoord);\n"
     "}\n\0";
         int wi,wa,nr,lo,wi1,wa1,nr1,dalc;
-    bool dynamci;
+    bool dynamci,a,b;
     unsigned char* da;
     unsigned char* da1;
+  float borde_izq;
+  float borde_der;
+  float borde_arriba;
+    float borde_abajo,r = 0.0f;
+float    borde_izq_caja_detctar;
+float    borde_der_caja_detctar;
+float borde_arriba_caja_detctar;
+float  borde_abajo_caja_detctar;int com = 0;
+    float squash_base[48] = {0.0f};
+    bool squash_base_guardada = false;
+    float squash_valor = 0.0f;
+    float rotacion_base[48] = {0.0f};
+    float rotacion_actual = 0.0f;
+    float rotacion_objetivo = 0.0f;
+    float rotacion_velocidad = 0.0f;
+    int rotacion_direccion = 1;
+    bool rotacion_activa = false;
+    bool rotacion_volviendo = false;
+    bool rotacion_terminada = false;int abcda = 0;
 public:
 void config(const char* ruta,float* posiciones_copiar)
 {
@@ -1921,8 +2007,131 @@ void config(const char* ruta,float* posiciones_copiar)
     textura(ruta,textrue,shadeee,wi,wa,nr,da,lo);
 
 }
+void cambiar_textura(const char* ruta_a_la_tex)
+{    textura(ruta_a_la_tex,textrue,shadeee,wi,wa,nr,da,lo);
+}
+//cambia entre <sprite1> y <sprite2> cada <intervalo> asumiendo que el personaje esta en sprite1 como estado inicial
+void idle(float intervalo,const char* sprite1,const char* sprite2,personaje& personaje)
+{
+    if (intervalo <= 0.0f)
+    {
+        return;
+    }
+
+    temporisador(intervalo, r, com);
+    if (com > 0)
+    {
+        personaje.cambiar_textura((com % 2) == 1 ? sprite2 : sprite1);
+    }
+}
+// Avanza una rotacion no bloqueante. Llamar una vez por frame mientras se anima.
+// lado: 1 = derecha, 0 = izquierda. La animacion se rearma con reiniciar_rotacion().
+void rotar(int grados,float velocidad_rotacion,int lado,bool volver_a_la_pos_org)
+{
+    if (grados <= 0 || velocidad_rotacion <= 0.0f || (lado != 0 && lado != 1))
+    {
+        return;
+    }
+
+    if (!rotacion_activa && !rotacion_terminada)
+    {
+        for (int i = 0; i < 48; i++)
+        {
+            rotacion_base[i] = (i < 24) ? posiciones[i] : posiciones1[i - 24];
+        }
+
+        rotacion_actual = 0.0f;
+        rotacion_objetivo = static_cast<float>(grados);
+        rotacion_velocidad = velocidad_rotacion;
+        // En coordenadas de OpenGL, el lado derecho corresponde al giro horario.
+        rotacion_direccion = (lado == 1) ? -1 : 1;
+        rotacion_volviendo = false;
+        rotacion_activa = true;
+    }
+
+    if (!rotacion_activa)
+    {
+        return;
+    }
+
+    if (rotacion_volviendo)
+    {
+        rotacion_actual = std::max(0.0f, rotacion_actual - rotacion_velocidad);
+    }
+    else
+    {
+        rotacion_actual = std::min(rotacion_objetivo,
+                                   rotacion_actual + rotacion_velocidad);
+    }
+
+    const float pi = 3.14159265358979323846f;
+    const float angulo = rotacion_direccion * rotacion_actual * pi / 180.0f;
+    const float coseno = std::cos(angulo);
+    const float seno = std::sin(angulo);
+    const float centro_x = (rotacion_base[0] + rotacion_base[8] + rotacion_base[16] +
+                            rotacion_base[24] + rotacion_base[32] + rotacion_base[40]) / 6.0f;
+    const float centro_y = (rotacion_base[1] + rotacion_base[9] + rotacion_base[17] +
+                            rotacion_base[25] + rotacion_base[33] + rotacion_base[41]) / 6.0f;
+
+    for (int i = 0; i < 24; i += 8)
+    {
+        const float x = rotacion_base[i] - centro_x;
+        const float y = rotacion_base[i + 1] - centro_y;
+        posiciones[i] = centro_x + x * coseno - y * seno;
+        posiciones[i + 1] = centro_y + x * seno + y * coseno;
+
+        const int indice = i + 24;
+        posiciones1[i] = centro_x + (rotacion_base[indice] - centro_x) * coseno -
+                         (rotacion_base[indice + 1] - centro_y) * seno;
+        posiciones1[i + 1] = centro_y + (rotacion_base[indice] - centro_x) * seno +
+                              (rotacion_base[indice + 1] - centro_y) * coseno;
+    }
+
+    if (!rotacion_volviendo && rotacion_actual >= rotacion_objetivo)
+    {
+        if (volver_a_la_pos_org && !rotacion_volviendo)
+        {
+            rotacion_volviendo = true;
+            return;
+        }
+
+        rotacion_activa = false;
+        rotacion_terminada = true;
+    }
+    else if (rotacion_volviendo && rotacion_actual <= 0.0f)
+    {
+        rotacion_activa = false;
+        rotacion_terminada = true;
+    }
+}
+
+void reiniciar_rotacion()
+{
+    rotacion_actual = 0.0f;
+    rotacion_objetivo = 0.0f;
+    rotacion_velocidad = 0.0f;
+    rotacion_activa = false;
+    rotacion_volviendo = false;
+    rotacion_terminada = false;
+}
+void caminar_anim(personaje &personajee,int grados,float velocidad,bool volver_a_pos)
+{
+    if (abcda == 0){
+    personajee.rotar(grados,velocidad,1.0f,volver_a_pos);
+    if (rotacion_terminada)
+    {
+personajee.reiniciar_rotacion();    abcda = 1;
+}}
+else
+    personajee.rotar(grados,velocidad,0.0f,volver_a_pos);
+    if (rotacion_terminada)
+    {
+personajee.reiniciar_rotacion();    abcda = 0;
+}
+}
+
 //usar antes de la funcion config
-void config_tex( char* vertexshader, char* fragmentshader)
+void config_shader( char* vertexshader, char* fragmentshader)
 {
     sourv = fragmentshader;
     sorf = vertexshader;
@@ -1989,8 +2198,10 @@ for (int i = 0; i < 48; i++)
      { posicioness[i] = posiciones1[i - 24];}
     
 }}}
-void loop(float* posicioness)
+void loop(float* posicioness,bool act_posiciones_internas)
 {
+    if ( !act_posiciones_internas)
+    {
     for (int i = 0; i < 48; i++)
 {
     if (i < 24)
@@ -2000,9 +2211,266 @@ void loop(float* posicioness)
     }
     else
      { posicioness[i] = posiciones1[i - 24];}
+    }}
+    else
+    {    for (int i = 0; i < 48; i++)
+{
+    if (i < 24)
+    {
+        posiciones[i] = posicioness[i];
+
     }
+    else
+     { posiciones1[i - 24] = posicioness[i];}}
+
    }
-   
+}
+//posiciones de lo que detectar es la variable[48] de el objeto al que queres detectar si esta atravesando acorate de acutalizar array antes de usarlo,paso es lo que se le va a restar si la condicion se cumple(que tan para atras se va o para adelante con la fueva funcion)
+void loop_juegito_skibidy(float paso,bloquete caja_detectar,bool adentro_de_caja)
+{
+   posiciones_48[0] = posiciones[0]; 
+      posiciones_48[1] = posiciones[1]; 
+         posiciones_48[2] = posiciones[2]; 
+            posiciones_48[8] = posiciones[8];   
+               posiciones_48[9] = posiciones[9];   
+                posiciones_48[16] = posiciones[16];    
+                   posiciones_48[17] = posiciones[17];   
+                      posiciones_48[24] = posiciones1[0];      
+                         posiciones_48[25] = posiciones1[1];    
+                            posiciones_48[26] = posiciones1[2];   
+                               posiciones_48[32] = posiciones1[8];   
+                                  posiciones_48[33] = posiciones1[9];       
+                                    posiciones_48[40] = posiciones1[16];     
+                                       posiciones_48[41] = posiciones1[17];
+    caja_detectar.detectar_colision_4_lados(abajo,arriba,derecha,izq,posiciones_48);
+    caja_detectar.actualizar_array(posiciones_48_caja_detectar,false);
+    if (izq/*posiciones[8] <= std::min(std::min(std::min(std::min(std::min(posiciones_de_lo_que_detectar[0],posiciones_de_lo_que_detectar[8]),posiciones_de_lo_que_detectar[16]),posiciones_de_lo_que_detectar[24]),posiciones_de_lo_que_detectar[32]),posiciones_de_lo_que_detectar[40]) and posiciones[1] <= std::max(std::max(std::max(std::max(std::max(posiciones_de_lo_que_detectar[1],posiciones_de_lo_que_detectar[9]),posiciones_de_lo_que_detectar[17]),posiciones_de_lo_que_detectar[25]),posiciones_de_lo_que_detectar[33]),posiciones_de_lo_que_detectar[41])*/)
+    {
+                 posiciones[0] -= paso;            posiciones[8] -= paso;            posiciones[16] -= paso;            posiciones1[0] -= paso;            posiciones1[8] -= paso;            posiciones1[16] -= paso;  
+    }
+    else if (derecha/*posiciones[0] <= std::max(std::max(std::max(std::max(std::max(posiciones_de_lo_que_detectar[0],posiciones_de_lo_que_detectar[8]),posiciones_de_lo_que_detectar[16]),posiciones_de_lo_que_detectar[24]),posiciones_de_lo_que_detectar[32]),posiciones_de_lo_que_detectar[40]) and posiciones[1] <= std::max(std::max(std::max(std::max(std::max(posiciones_de_lo_que_detectar[1],posiciones_de_lo_que_detectar[9]),posiciones_de_lo_que_detectar[17]),posiciones_de_lo_que_detectar[25]),posiciones_de_lo_que_detectar[33]),posiciones_de_lo_que_detectar[41])*/)
+{
+                 posiciones[0] += paso;            posiciones[8] += paso;            posiciones[16] += paso;            posiciones1[0] += paso;            posiciones1[8] += paso;            posiciones1[16] += paso;  
+
+}//necesito que este tocando derecha ahora que lo pienso
+
+    borde_izq = std::min(std::min(std::min(std::min(std::min(posiciones_48[0],posiciones_48[8]),posiciones_48[16]),posiciones_48[24]),posiciones_48[32]),posiciones_48[40]);
+    borde_der = std::max(std::max(std::max(std::max(std::max(posiciones_48[0],posiciones_48[8]),posiciones_48[16]),posiciones_48[24]),posiciones_48[32]),posiciones_48[40]);
+ borde_arriba = std::max(std::max(std::max(std::max(std::max(posiciones_48[1],posiciones_48[9]),posiciones_48[17]),posiciones_48[25]),posiciones_48[33]),posiciones_48[41]);
+  borde_abajo = std::min(std::min(std::min(std::min(std::min(posiciones_48[1],posiciones_48[9]),posiciones_48[17]),posiciones_48[25]),posiciones_48[33]),posiciones_48[41]);
+  ///
+    borde_izq_caja_detctar = std::min(std::min(std::min(std::min(std::min(posiciones_48_caja_detectar[0],posiciones_48_caja_detectar[8]),posiciones_48_caja_detectar[16]),posiciones_48_caja_detectar[24]),posiciones_48_caja_detectar[32]),posiciones_48_caja_detectar[40]);
+    borde_der_caja_detctar = std::max(std::max(std::max(std::max(std::max(posiciones_48_caja_detectar[0],posiciones_48_caja_detectar[8]),posiciones_48_caja_detectar[16]),posiciones_48_caja_detectar[24]),posiciones_48_caja_detectar[32]),posiciones_48_caja_detectar[40]);
+ borde_arriba_caja_detctar = std::max(std::max(std::max(std::max(std::max(posiciones_48_caja_detectar[1],posiciones_48_caja_detectar[9]),posiciones_48_caja_detectar[17]),posiciones_48_caja_detectar[25]),posiciones_48_caja_detectar[33]),posiciones_48_caja_detectar[41]);
+  borde_abajo_caja_detctar = std::min(std::min(std::min(std::min(std::min(posiciones_48_caja_detectar[1],posiciones_48_caja_detectar[9]),posiciones_48_caja_detectar[17]),posiciones_48_caja_detectar[25]),posiciones_48_caja_detectar[33]),posiciones_48_caja_detectar[41]);
+ 
+    if ((borde_abajo < borde_arriba and borde_arriba > borde_abajo_caja_detctar and borde_der > borde_izq_caja_detctar and borde_izq < borde_der_caja_detctar) or (derecha and izq and abajo and arriba))
+    {
+        adentro_de_caja = true;
+    }
+    else{adentro_de_caja = false;}
+    
+}
+
+void squash(float cantidad_bajada, float duracion, bool &aplastando, float deltaTime)
+{
+    static float tiempo_animacion = 0.0f;
+
+    if (!squash_base_guardada)
+    {
+        for (int i = 0; i < 24; i++)
+        {
+            squash_base[i] = posiciones[i];
+            squash_base[i + 24] = posiciones1[i];
+        }
+        squash_base_guardada = true;
+        tiempo_animacion = 0.0f;
+    }
+
+    if (duracion <= 0.0f)
+    {
+        duracion = 0.001f;
+    }
+
+    tiempo_animacion += deltaTime;
+    float progreso = tiempo_animacion / duracion;
+    if (progreso > 1.0f)
+    {
+        progreso = 1.0f;
+    }
+
+    float abajo_base = std::min(std::min(std::min(std::min(std::min(squash_base[1], squash_base[9]), squash_base[17]), squash_base[25]), squash_base[33]), squash_base[41]);
+    float arriba_base = std::max(std::max(std::max(std::max(std::max(squash_base[1], squash_base[9]), squash_base[17]), squash_base[25]), squash_base[33]), squash_base[41]);
+    float izq_base = std::min(std::min(std::min(std::min(std::min(squash_base[0], squash_base[8]), squash_base[16]), squash_base[24]), squash_base[32]), squash_base[40]);
+    float der_base = std::max(std::max(std::max(std::max(std::max(squash_base[0], squash_base[8]), squash_base[16]), squash_base[24]), squash_base[32]), squash_base[40]);
+
+    float altura_base = arriba_base - abajo_base;
+    if (altura_base <= 0.001f)
+    {
+        altura_base = 0.001f;
+    }
+
+    float centro_x = (izq_base + der_base) * 0.5f;
+    float fuerza = sinf(progreso * 3.14159265f);
+    float escala_y = 1.0f - (cantidad_bajada / altura_base) * fuerza;
+    float escala_x = 1.0f + (cantidad_bajada / altura_base) * 1.35f * fuerza;
+
+    auto aplicar_squash = [&](float *destino, int offset_base)
+    {
+        destino[0] = centro_x + (squash_base[offset_base + 0] - centro_x) * escala_x;
+        destino[1] = abajo_base + (squash_base[offset_base + 1] - abajo_base) * escala_y;
+        destino[8] = centro_x + (squash_base[offset_base + 8] - centro_x) * escala_x;
+        destino[9] = abajo_base + (squash_base[offset_base + 9] - abajo_base) * escala_y;
+        destino[16] = centro_x + (squash_base[offset_base + 16] - centro_x) * escala_x;
+        destino[17] = abajo_base + (squash_base[offset_base + 17] - abajo_base) * escala_y;
+    };
+
+    aplicar_squash(posiciones, 0);
+    aplicar_squash(posiciones1, 24);
+
+    if (tiempo_animacion >= duracion)
+    {
+        for (int i = 0; i < 24; i++)
+        {
+            posiciones[i] = squash_base[i];
+            posiciones1[i] = squash_base[i + 24];
+        }
+        tiempo_animacion = 0.0f;
+        squash_base_guardada = false;
+        aplastando = false;
+    }
+}
+
+void squash(float cantidad_bajada, bool &aplastando, float deltaTime, float duracion) 
+{
+    static float tiempo_animacion = 0.0f;
+    static float desplazo_previo = 0.0f;
+
+    // 1. Avanzar el tiempo    
+    tiempo_animacion += deltaTime;
+    float progreso = tiempo_animacion / duracion;
+
+    if (progreso > 1.0f) progreso = 1.0f;
+
+    // 2. Calcular cuánto debe bajar en este frame (Curva Seno: va de 0 -> bajada -> 0)
+    float desplazo_actual = sinf(progreso * 3.14159265f) * cantidad_bajada;
+
+    // 3. Obtener la diferencia (delta) con el cuadro anterior
+    float delta_y = desplazo_actual - desplazo_previo;
+    desplazo_previo = desplazo_actual;
+
+    // 4. Mover todos los vértices en Y (Restamos delta_y para ir hacia abajo)
+    posiciones[1]  -= delta_y;
+    posiciones[9]  -= delta_y;
+    posiciones[17] -= delta_y;
+
+    posiciones1[1]  -= delta_y;
+    posiciones1[9]  -= delta_y;
+    posiciones1[17] -= delta_y;
+
+    // 5. Finalizar cuando se cumpla la duración
+    if (tiempo_animacion >= duracion) 
+    {
+        tiempo_animacion = 0.0f;
+        desplazo_previo = 0.0f; // Resetea el tracking para la próxima vez
+        aplastando = false;     // Desactiva el estado en el main
+    }
+}
+
+
+
+
+
+
+
+
+
 };
+class audio_manage
+{
+private:
+
+int pattern = 0,u = 0,cc = 0,pp = 0;
+float r = 0.0;
+public:
+void audio(const char *ruta_al_audio,float duracion,float& r,int &c,int &i)
+{
+    if (i == 0)
+    {
+        r = static_cast<float>(glfwGetTime());
+        c = 0;
+        reproducir_audio(ruta_al_audio);
+        i = 1;
+        return;
+    }
+
+    temporisador(duracion, r, c);
+}
+//pattern_rute es el nombre/ruta del archivo de audio. pattern es el numero de patron que hay que reproducir y sirve para algunas cosas mas.p_gen es el numero de patrones
+void audio_pattern(const char *pattern_rute,int &pattern_ext,int p_gen,float duration)
+{
+audio_manage::audio(pattern_rute,duration,r,cc,u);
+if (cc == 1 and u == 1)
+{
+    pattern_ext = rand() % 5;cc = 0;pp = pattern + 1;u = 0;cc = 0;
+}
+
+else if (pp == pattern_ext + 1 and pattern_ext == 0) {pattern_ext = rand() % p_gen;}
+pattern = pattern_ext;
+}
+};
+/*
+if (pattern == 0 and pp != 1)
+{
+audio("pattern_1.wav",20,rr,cc,u);
+if (cc == 1)
+{
+    pattern = rand() % 5;cc = 0;pp = 1;u = 0;
+}
+}
+else if (pp == 1 and pattern == 0) {pattern = rand() % 5;}
+//
+if (pattern == 1 and pp != 2 )
+{
+audio("pattern_2.wav",20,rr,cc,u);
+if (cc == 1)
+{
+    pattern = rand() % 5;cc = 0;pp = 2;u = 0;
+}
+}
+else if (pp == 2 and pattern == 1) {pattern = rand() % 5;}
+//
+if (pattern == 2 and pp != 3)
+{
+audio("pattern_3.wav",20,rr,cc,u);
+if (cc == 1)
+{
+    pattern = rand() % 5;cc = 0;pp = 3;u = 0;
+}
+}
+else if (pp == 3 and pattern == 2) {pattern = rand() % 5;}
+//
+if (pattern == 3 and pp != 4)
+{
+audio("pattern_4.wav",20,rr,cc,u);
+if (cc == 1)
+{
+    pattern = rand() % 5;cc = 0;pp = 4;u = 0;
+}
+}
+else if (pp == 4 and pattern == 3) {pattern = rand() % 5;}
+//
+if (pattern == 4 and pp != 5)
+{
+audio("pattern_5.wav",20,rr,cc,u);
+if (cc == 1)
+{
+    pattern = rand() % 5;cc = 0;pp = 5;u = 0;
+}
+}
+else if (pp == 5 and pattern == 4) {pattern = rand() % 5;}
+/////////////lol*/
+
+
 
 //
