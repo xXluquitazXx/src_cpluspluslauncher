@@ -987,7 +987,210 @@ int points = 0;
 float velocidad = 0.0006;
     const char* rutardopolis = "flapy bodrio";
     } // namespace fla
+    namespace skibidygame
+{
+
+        personaje playerer;
+        bloquete test;
+        GLFWwindow* window;
+        float piso[48] = {    -1.0f,-0.8f,0.0f, 1,0,0, 0,1,
+         1.0f,-0.8f,0.0f, 0,1,0, 1,1,
+         1.0f,-1.0f,0.0f, 0,0,1, 1,0,
     
+        // TriÃ¡ngulo 2
+        -1.0f,-0.8f,0.0f, 1,0,0, 0,1,
+        -1.0f,-1.0f,0.0f, 0,1,0, 0,0,
+         1.0f,-1.0f,0.0f, 0,0,1, 1,0};
+        const char* test_tex = "foto_perfil.png";
+        float pos_playerer[48] = {
+        // TriÃ¡ngulo 1 (arriba-derecha)
+        -0.80f,  0.10f, 0.0f, 1,0,0, 0,1,
+        -0.65f,  0.10f, 0.0f, 0,1,0, 1,1,
+        -0.65f, -0.10f, 0.0f, 0,0,1, 1,0,
+        
+        // TriÃ¡ngulo 2 (abajo-izquierda)
+        -0.80f,  0.10f, 0.0f, 1,0,0, 0,1,
+        -0.80f, -0.10f, 0.0f, 0,1,0, 0,0,
+        -0.65f, -0.10f, 0.0f, 0,0,1, 1,0
+        };
+            float pos_playerer_original[48] = {
+        // TriÃ¡ngulo 1 (arriba-derecha)
+        -0.80f,  0.10f, 0.0f, 1,0,0, 0,1,
+        -0.65f,  0.10f, 0.0f, 0,1,0, 1,1,
+        -0.65f, -0.10f, 0.0f, 0,0,1, 1,0,
+        
+        // TriÃ¡ngulo 2 (abajo-izquierda)
+        -0.80f,  0.10f, 0.0f, 1,0,0, 0,1,
+        -0.80f, -0.10f, 0.0f, 0,1,0, 0,0,
+        -0.65f, -0.10f, 0.0f, 0,0,1, 1,0
+        };
+            float pos_cajarng[48] = {
+              1.0f,  -0.55f, 0.0f,   1.0f, 0.0f, 0.0f,  0.0f, 1.0f, // top right
+              1.4f,  -0.55f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f, // bottom right
+              1.4f,   -0.8f, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f, // bottom left
+            
+              1.0f, -0.55f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f, // top right
+              1.0f, -0.8, 0.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, // bottom right
+              1.4f, -0.8, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f};
+            float pos_cajarng_original[48] = {
+              1.0f,  -0.55f, 0.0f,   1.0f, 0.0f, 0.0f,  0.0f, 1.0f, // top right
+              1.4f,  -0.55f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f, // bottom right
+              1.4f,   -0.8f, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f, // bottom left
+            
+              1.0f, -0.55f, 0.0f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f, // top right
+              1.0f, -0.8, 0.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, // bottom right
+              1.4f, -0.8, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f};
+        float pos_test_block[48] = {    // TriÃ¡ngulo 1 (arriba-derecha)
+         0.50f,  0.10f, 0.0f, 1,0,0, 0,1,
+         0.80f,  0.10f, 0.0f, 0,1,0, 1,1,
+         0.80f, -0.20f, 0.0f, 0,0,1, 1,0,
+        
+        // TriÃ¡ngulo 2 (abajo-izquierda)
+         0.50f, 0.10f, 0.0f, 1,0,0, 0,1,
+         0.50f, -0.20f, 0.0f, 0,1,0, 0,0,
+         0.80f, -0.20f, 0.0f, 0,0,1, 1,0
+    };float pos_caja[48] = {
+        // TriÃ¡ngulo 1
+         0.85f, -0.650f, 0.0f, 1,0,0, 0,1,
+         1.15f, -0.650f, 0.0f, 0,1,0, 1,1,
+         1.15f, -0.80f, 0.0f, 0,0,1, 1,0,
+    
+        // TriÃ¡ngulo 2
+         0.85f, -0.650f, 0.0f, 1,0,0, 0,1,
+         0.85f, -0.80f, 0.0f, 0,1,0, 0,0,
+         1.15f, -0.80f, 0.0f, 0,0,1, 1,0
+    };
+    float pos_caja_original[48] = {
+        // TriÃ¡ngulo 1
+         0.85f, -0.650f, 0.0f, 1,0,0, 0,1,
+         1.15f, -0.650f, 0.0f, 0,1,0, 1,1,
+         1.15f, -0.80f, 0.0f, 0,0,1, 1,0,
+    
+        // TriÃ¡ngulo 2
+         0.85f, -0.650f, 0.0f, 1,0,0, 0,1,
+         0.85f, -0.80f, 0.0f, 0,1,0, 0,0,
+         1.15f, -0.80f, 0.0f, 0,0,1, 1,0
+    };
+    float pos_casa[48] = {
+        // TriÃ¡ngulo 1
+         1.40f, -0.35f, 0.0f, 1,0,0, 0,1,
+         2.05f, -0.35f, 0.0f, 0,1,0, 1,1,
+         2.05f, -0.80f, 0.0f, 0,0,1, 1,0,
+    
+        // TriÃ¡ngulo 2
+         1.40f, -0.35f, 0.0f, 1,0,0, 0,1,
+         1.40f, -0.80f, 0.0f, 0,1,0, 0,0,
+         2.05f, -0.80f, 0.0f, 0,0,1, 1,0
+    };
+    float pos_casa_original[48] = {
+        // TriÃ¡ngulo 1
+         1.40f, -0.35f, 0.0f, 1,0,0, 0,1,
+         2.05f, -0.35f, 0.0f, 0,1,0, 1,1,
+         2.05f, -0.80f, 0.0f, 0,0,1, 1,0,
+    
+        // TriÃ¡ngulo 2
+         1.40f, -0.35f, 0.0f, 1,0,0, 0,1,
+         1.40f, -0.80f, 0.0f, 0,1,0, 0,0,
+         2.05f, -0.80f, 0.0f, 0,0,1, 1,0
+    };
+    float pos_cajarng1[48] = {
+    // TriÃ¡ngulo 1
+         1.0f, -0.50f, 0.0f,  1,0,0,  0,1,
+         1.30f, -0.50f, 0.0f,  0,1,0,  1,1,
+         1.30f, -0.80f, 0.0f,  0,0,1,  1,0,
+    
+        // TriÃ¡ngulo 2
+        1.0f, -0.50f, 0.0f,  1,0,0,  0,1,
+        1.0f, -0.80f, 0.0f,  0,1,0,  0,0,
+         1.30f, -0.80f, 0.0f,  0,0,1,  1,0
+    };
+    float pos_cajarng1_original[48] = {
+    // TriÃ¡ngulo 1
+         1.0f, -0.50f, 0.0f,  1,0,0,  0,1,
+         1.30f, -0.50f, 0.0f,  0,1,0,  1,1,
+         1.30f, -0.80f, 0.0f,  0,0,1,  1,0,
+    
+        // TriÃ¡ngulo 2
+        1.0f, -0.50f, 0.0f,  1,0,0,  0,1,
+        1.0f, -0.80f, 0.0f,  0,1,0,  0,0,
+         1.30f, -0.80f, 0.0f,  0,0,1,  1,0
+    };float pos_cajarng2[48] = {
+        // TriÃ¡ngulo 1
+         1.50f, -0.15f, 0.0f,  1,0,0,  0,1,
+         1.80f, -0.15f, 0.0f,  0,1,0,  1,1,
+         1.80f, -0.45f, 0.0f,  0,0,1,  1,0,
+    
+        // TriÃ¡ngulo 2
+         1.50f, -0.15f, 0.0f,  1,0,0,  0,1,
+         1.50f, -0.45f, 0.0f,  0,1,0,  0,0,
+         1.80f, -0.45f, 0.0f,  0,0,1,  1,0
+    };
+    float pos_cajarng2_original[48] = {
+        // TriÃ¡ngulo 1
+         1.50f, -0.15f, 0.0f,  1,0,0,  0,1,
+         1.80f, -0.15f, 0.0f,  0,1,0,  1,1,
+         1.80f, -0.45f, 0.0f,  0,0,1,  1,0,
+    
+        // TriÃ¡ngulo 2
+         1.50f, -0.15f, 0.0f,  1,0,0,  0,1,
+         1.50f, -0.45f, 0.0f,  0,1,0,  0,0,
+         1.80f, -0.45f, 0.0f,  0,0,1,  1,0
+    };float pos_cajarng3[48] = {
+        // TriÃ¡ngulo 1
+         1.90f, 0.20f, 0.0f,  1,0,0,  0,1,
+         2.20f, 0.20f, 0.0f,  0,1,0,  1,1,
+         2.20f, -0.80f, 0.0f,  0,0,1,  1,0,
+    
+        // TriÃ¡ngulo 2
+         1.90f,  0.20f, 0.0f,  1,0,0,  0,1,
+         1.90f, -0.80f, 0.0f,  0,1,0,  0,0,
+         2.20f, -0.80f, 0.0f,  0,0,1,  1,0
+    };
+    float pos_cajarng3_original[48] = {
+        // TriÃ¡ngulo 1
+         1.90f, 0.20f, 0.0f,  1,0,0,  0,1,
+         2.20f, 0.20f, 0.0f,  0,1,0,  1,1,
+         2.20f, -0.80f, 0.0f,  0,0,1,  1,0,
+    
+        // TriÃ¡ngulo 2
+         1.90f,  0.20f, 0.0f,  1,0,0,  0,1,
+         1.90f, -0.80f, 0.0f,  0,1,0,  0,0,
+         2.20f, -0.80f, 0.0f,  0,0,1,  1,0
+    };
+    float pos_fondo[48] = {-1.0,1.0,0.0,1,0,0,0,1,
+    1.0,1.0,0.0,0,1,0,1,1,
+    1.0,-1.0,0.0,0,0,1,1,0,
+    
+    -1.0,1.0,0.0,1,0,0,0,1,
+    -1.0,-1.0,0.0,0,1,0,0,0,
+    1.0,-1.0,0.0,0,0,1,1,0};
+    bloquete obj_piso;
+    bloquete caja;////////////////////////////fondo jugando pantalla azul win_err. fondo menu es letras en verde tipo haker cayendo. obstaculos ventanas de error. piso 
+    bloquete casa;
+    bloquete caja_rng2;bool tecla_s;
+    float rng = rand() % 3 + 1;
+                        float n = -0.70f + (float)rand() / RAND_MAX * (-0.30f - (-0.70f));// numero aleatorio con coma
+                        float n3,n1 = -0.65f + (float)rand() / RAND_MAX * (-0.35f - (-0.65f));// numero aleatorio con coma
+    bloquete rng3[3];bool prevabajo = false;
+    int que_goob_usar = rand() % 3 + 1,cc = 0,pattern = rand() % 5,pp = 0,u = 0; 
+    bloquete fondo;bool lo_otro;
+                        int prevrng;
+    bool colisiones[24] = {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false};
+    double mouseX,mouseY; bool press = false,menu = true,prevp = false;
+    float altura_salto,start_time,end_time,rr = 0.0f;
+    float x_mouse = 0.0;
+    float graveda = 0.01,velocidad = 0.02,salto = 0.04;
+    float y_mouse = 0.0, obj_velocidad = 0.004,n2 = 0,ultimoFrame = 0.0f,deltaTime = 0.0;
+    bool abajo = false, arriba = false, derecha = false, izquierda = false, clik = false, w = false, prevW = false, aplastando = false;
+        bool alreadystart = false, seguir_subiendo = false;
+        bool boton_menu = false;
+        bool preva,prevd,tecla_a,tecla_d,adentro_de_caja,saltando;
+        audio_manage audio;
+            const double target_frame_time = 1.0 / 240.0;
+        float cooldown = 0.4f, r = 0.0f;int c = 0;
+
+} // namespace skibidygame
+
 int main(void) {
    std::cout<<"loading: this can take a while"<<std::endl;
     int menu_principal = 67;
@@ -1314,6 +1517,7 @@ while (true) {
   std::cout <<"4-juego de ezquivar 2.0"<<std::endl;
   std::cout <<"5-atomos segun thompson"<<std::endl;
   std::cout<<"6-flappy bodrio con una sola textura(sus.png en los archivos)"<<std::endl;
+  std::cout<<"7-sick goob"<<std::endl;
 
   std::cin>>menu_opengl;
 
@@ -3979,9 +4183,443 @@ else
     framebuffer_size_callback(fla::window,1360,768);
     glfwSwapBuffers(fla::window);
     glfwPollEvents();
- }}
+ }
+}
 
-  }
+  if (menu_opengl == 7)
+  {skibidygame::rng = rand() % 3 + 1;
+    skibidygame::n = -0.70f + (float)rand() / RAND_MAX * (-0.30f - (-0.70f));
+    skibidygame::n1 = -0.65f + (float)rand() / RAND_MAX * (-0.35f - (-0.65f));
+    skibidygame::n3 = 0.0f;
+    skibidygame::pattern = rand() % 5;
+    skibidygame::que_goob_usar = rand() % 3 + 1;
+iniciar_glfw_y_glew(skibidygame::window,1360,768,3,"yaya");
+skibidygame::fondo.config(true,"fondo.png",skibidygame::pos_fondo);
+if (skibidygame::que_goob_usar == 1){skibidygame::playerer.config("goob2.png",skibidygame::pos_playerer);}
+if (skibidygame::que_goob_usar == 2){skibidygame::playerer.config("goob3.png",skibidygame::pos_playerer);}
+if (skibidygame::que_goob_usar == 3){skibidygame::playerer.config("goob4.png",skibidygame::pos_playerer);}
+
+
+
+    skibidygame::test.config(false,"play_butt.png",skibidygame::pos_test_block);
+    skibidygame::obj_piso.config(false,"floor.png",skibidygame::piso);
+    skibidygame::caja.config(true,"basura1.png",skibidygame::pos_caja);
+    skibidygame::casa.config(true,"tacho2.png",skibidygame::pos_casa);
+    skibidygame::caja_rng2.config(true,"autito1.png",skibidygame::pos_cajarng);
+    skibidygame::rng3[0].config(true,"caja.png",skibidygame::pos_cajarng1);
+    skibidygame::rng3[1].config(true,"dron.png",skibidygame::pos_cajarng2);
+    skibidygame::rng3[2].config(true,"casita.png",skibidygame::pos_cajarng3);
+    while (!glfwWindowShouldClose(skibidygame::window))
+    {//////////////////hacerlo 2 jugadores o mas /implementar tipo block dash
+            const auto frame_start = std::chrono::steady_clock::now();
+float frameActual = static_cast<float>(glfwGetTime());
+    skibidygame::deltaTime = frameActual - skibidygame::ultimoFrame;
+    skibidygame::ultimoFrame = frameActual;
+glClear(GL_COLOR_BUFFER_BIT);
+skibidygame::prevp = skibidygame::boton_menu;
+
+ skibidygame::boton_menu = false;
+
+skibidygame::test.modo_boton(skibidygame::window,GLFW_MOUSE_BUTTON_LEFT,skibidygame::boton_menu);
+bool click_recien_pulsado = skibidygame::boton_menu && !skibidygame::prevp;
+
+if (!skibidygame::press and !skibidygame::alreadystart and skibidygame::menu and click_recien_pulsado){
+    skibidygame::press = true;
+    skibidygame::alreadystart = true;
+    skibidygame::menu = false;
+    skibidygame::fondo.cambiar_textura("fondo_p.png");
+    parar_audio();
+    reproducir_audio("mus.mp3");
+}
+if (!skibidygame::press and !skibidygame::alreadystart and skibidygame::menu){
+    skibidygame::fondo.drwa();
+skibidygame::test.drwa();
+//////////////skibidygame::audio
+if (skibidygame::pattern == 0)
+{
+skibidygame::audio.audio_pattern("pattern_1.wav",skibidygame::pattern,5,20);
+}
+if (skibidygame::pattern == 1)
+{
+skibidygame::audio.audio_pattern("pattern_2.wav",skibidygame::pattern,5,20);
+}
+if (skibidygame::pattern == 2)
+{
+skibidygame::audio.audio_pattern("pattern_3.wav",skibidygame::pattern,5,20);
+}
+if (skibidygame::pattern == 3)
+{
+skibidygame::audio.audio_pattern("pattern_4.wav",skibidygame::pattern,5,20);
+}
+if (skibidygame::pattern == 4)
+{
+skibidygame::audio.audio_pattern("pattern_5.wav",skibidygame::pattern,5,20);
+}
+}
+else if (skibidygame::alreadystart and !skibidygame::menu)
+{
+        skibidygame::fondo.drwa();
+
+    if (skibidygame::start_time - skibidygame::end_time > 0.016666)
+    {
+skibidygame::menu = true;skibidygame::alreadystart = false;    }
+    skibidygame::start_time = glfwGetTime();
+    
+    skibidygame::prevrng = skibidygame::rng;
+        skibidygame::colisiones[0] = false;        
+                skibidygame::colisiones[1] = false;
+                        skibidygame::colisiones[2] = false;
+                                skibidygame::colisiones[3] = false;
+                                        skibidygame::colisiones[4] = false;
+                                                skibidygame::colisiones[5] = false;
+                                                        skibidygame::colisiones[6] = false;
+                                                                skibidygame::colisiones[7] = false;
+                                                                        skibidygame::colisiones[8] = false;
+                                                                                skibidygame::colisiones[9] = false;        
+                                                                                         skibidygame::colisiones[10] = false;
+                                                                                                 skibidygame::colisiones[11] = false;
+                                                                                                         skibidygame::colisiones[12] = false;
+                                                                                                                 skibidygame::colisiones[13] = false;      
+                                                                                                                         skibidygame::colisiones[14] = false;
+                                                                                                                             skibidygame::colisiones[15] = false;
+                                                                                                                                     skibidygame::colisiones[16] = false;
+                                                                                                                                             skibidygame::colisiones[17] = false;
+                                                                                                                                                     skibidygame::colisiones[18] = false;
+                                                                                                                                                             skibidygame::colisiones[19] = false;
+                                                                                                                                                                     skibidygame::colisiones[20] = false;
+                                                                                                                                                                             skibidygame::colisiones[21] = false;
+                                                                                                                                                                                     skibidygame::colisiones[22] = false;        
+                                                                                                                                                                                              skibidygame::colisiones[23] = false;
+                                                                                                                
+
+                                                        
+
+
+
+
+
+
+
+
+                if (skibidygame::rng == 1)
+                {
+                   //spawneaR CAJA a la skibidygame::derecha y ir trayendola hacia la skibidygame::izquierda despues de la skibidygame::caja pero cerca de la skibidygame::caja spawnear una especie de skibidygame::casa y usar el skibidygame::rng de vuelta. a mi yo del futuro le mando este mensaje:me voy a jugar 
+                                      skibidygame::caja.actualizar_array(skibidygame::pos_caja,false);
+                   skibidygame::caja.movete(false,-1.0,0.0,skibidygame::obj_velocidad,skibidygame::pos_caja);
+                   skibidygame::caja.actualizar_array(skibidygame::pos_caja,false);
+                   skibidygame::caja.detectar_colision_4_lados(skibidygame::colisiones[0],skibidygame::colisiones[1],skibidygame::colisiones[2],skibidygame::colisiones[3],skibidygame::pos_playerer);
+                   skibidygame::caja.drwa();
+                    /* code */                  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////urgente:aparte de que tenego que arreglar la mierda del skibidygame::salto y que no atravieses skibidygame::caja y skibidygame::casa cuando caes por skibidygame::arriba tengo que hacer algo para detectar tengo que sacarle las cordenadas a todo compararlas con las del jugador y toda esa mierda, deberia usar las funciones de prod eso voy a hacer
+                                         skibidygame::casa.actualizar_array(skibidygame::pos_casa,false); 
+
+                                     skibidygame::casa.movete(false,-1.0,0.0,skibidygame::obj_velocidad,skibidygame::pos_casa);
+                                     skibidygame::casa.actualizar_array(skibidygame::pos_casa,false);
+                                     skibidygame::casa.detectar_colision_4_lados(skibidygame::colisiones[4],skibidygame::colisiones[5],skibidygame::colisiones[6],skibidygame::colisiones[7],skibidygame::pos_playerer);
+                   skibidygame::casa.drwa();
+                   if (skibidygame::pos_casa[8] < -0.7)
+                   {
+                    skibidygame::casa.actualizar_array(skibidygame::pos_casa_original,true);
+                                        skibidygame::caja.actualizar_array(skibidygame::pos_caja_original,true);
+                   skibidygame::obj_velocidad += 0.0004;
+skibidygame::caja.altura_random(-0.5f,-0.7f,skibidygame::n); 
+skibidygame::casa.altura_random(skibidygame::n + 0.03,-0.4f,skibidygame::n1);
+skibidygame::rng = rand() % 3 + 1;   
+                   }
+
+                   
+                
+}
+if (skibidygame::rng == 2)
+{
+ skibidygame::caja_rng2.drwa();
+ skibidygame::caja_rng2.movete(false,-1.0f,0.0f,skibidygame::obj_velocidad,skibidygame::pos_cajarng);
+ skibidygame::caja_rng2.actualizar_array(skibidygame::pos_cajarng,false);
+ skibidygame::caja_rng2.detectar_colision_4_lados(skibidygame::colisiones[8],skibidygame::colisiones[9],skibidygame::colisiones[10],skibidygame::colisiones[11],skibidygame::pos_playerer);
+if (skibidygame::pos_cajarng[8] <= -0.7f){skibidygame::caja_rng2.actualizar_array(skibidygame::pos_cajarng_original,true);                   skibidygame::obj_velocidad += 0.0004;
+skibidygame::caja_rng2.lado_random(0,-0.40,-0.70,skibidygame::n2);
+skibidygame::caja_rng2.lado_random(2,1.6,1.2,skibidygame::n2);
+skibidygame::caja_rng2.lado_random(3,skibidygame::n2 - 0.1,1.0,skibidygame::n2);                    skibidygame::rng = rand() % 3 + 1;
+}}
+if (skibidygame::rng == 3)
+{
+skibidygame::rng3[0].drwa();
+skibidygame::rng3[1].drwa();
+skibidygame::rng3[2].drwa();
+skibidygame::rng3[0].movete(false,-1.0,0.0,skibidygame::obj_velocidad,skibidygame::pos_cajarng1);
+skibidygame::rng3[1].movete(false,-1.0,0.0,skibidygame::obj_velocidad,skibidygame::pos_cajarng2);
+skibidygame::rng3[2].movete(false,-1.0,0.0,skibidygame::obj_velocidad,skibidygame::pos_cajarng3);
+skibidygame::rng3[0].actualizar_array(skibidygame::pos_cajarng1,false);
+skibidygame::rng3[1].actualizar_array(skibidygame::pos_cajarng2,false);
+skibidygame::rng3[2].actualizar_array(skibidygame::pos_cajarng3,false);
+skibidygame::rng3[0].detectar_colision_4_lados(skibidygame::colisiones[12],skibidygame::colisiones[13],skibidygame::colisiones[14],skibidygame::colisiones[15],skibidygame::pos_playerer);
+skibidygame::rng3[1].detectar_colision_4_lados(skibidygame::colisiones[16],skibidygame::colisiones[17],skibidygame::colisiones[18],skibidygame::colisiones[19],skibidygame::pos_playerer);
+skibidygame::rng3[2].detectar_colision_4_lados(skibidygame::colisiones[20],skibidygame::colisiones[21],skibidygame::colisiones[22],skibidygame::colisiones[23],skibidygame::pos_playerer);
+
+if (skibidygame::pos_cajarng3[8] < -0.7)
+{
+skibidygame::rng3[0].actualizar_array(skibidygame::pos_cajarng1_original,true);
+skibidygame::rng3[1].actualizar_array(skibidygame::pos_cajarng2_original,true);
+skibidygame::rng3[2].actualizar_array(skibidygame::pos_cajarng3_original,true);
+
+skibidygame::obj_velocidad += 0.0004;
+skibidygame::rng3[0].altura_random(-0.40,-0.55,skibidygame::n3);
+skibidygame::rng3[1].altura_random(skibidygame::n3 + 0.35,skibidygame::n3 + 0.25,skibidygame::n3);
+skibidygame::rng3[2].altura_random(skibidygame::n3 + 0.35,skibidygame::n3 + 0.25,skibidygame::n3);
+skibidygame::rng = rand() % 3 + 1;
+}
+
+
+}
+
+if (skibidygame::rng != 2 and skibidygame::rng != 1 and skibidygame::rng != 3)
+{
+    skibidygame::rng = rand() % 3 + 1;std::cout<<"nuevo"<<std::endl;
+
+}
+
+
+     if (skibidygame::colisiones[0] or skibidygame::colisiones[4] or skibidygame::colisiones[8] or skibidygame::colisiones[12] or skibidygame::colisiones[16] or skibidygame::colisiones[20])
+                   {
+      skibidygame::playerer.loop(skibidygame::pos_playerer,false);
+              skibidygame::pos_playerer[0] -= skibidygame::obj_velocidad;                    skibidygame::pos_playerer[8] -= skibidygame::obj_velocidad;                    skibidygame::pos_playerer[16] -= skibidygame::obj_velocidad;                    skibidygame::pos_playerer[24] -= skibidygame::obj_velocidad;                    skibidygame::pos_playerer[32] -= skibidygame::obj_velocidad;                    skibidygame::pos_playerer[40] -= skibidygame::obj_velocidad;
+skibidygame::playerer.loop(skibidygame::pos_playerer,true);
+                   }
+input(skibidygame::window,GLFW_KEY_A,skibidygame::tecla_a);input(skibidygame::window,GLFW_KEY_D,skibidygame::tecla_d);input(skibidygame::window,GLFW_KEY_S,skibidygame::tecla_s);
+
+
+                //  if (skibidygame::prevrng == 0 and skibidygame::rng == 1) {skibidygame::n = -0.70f + (float)rand() / RAND_MAX * (-0.30f - (-0.70f));skibidygame::pos_caja[1] = skibidygame::n;skibidygame::pos_caja[9] = skibidygame::n;skibidygame::pos_caja[25] = skibidygame::n;}//setear altura de skibidygame::casa a random entre lo que puede saltar el jugador
+
+//hacer un contador que por 0.5 segundos o algo asi desactive la gravedad y sume de a poco a todas las y(1,9,17,15,33,41)}
+/*
+if (skibidygame::w and contador_salto == 1)
+{
+    temporisador(0.1f,reloj_salto,contador_salto);
+}
+if (skibidygame::w and contador_salto != 1)
+{                  me chupa la pija voy a jugar
+    skibidygame::pos_playerer[1] += skibidygame::salto;skibidygame::pos_playerer[9] += skibidygame::salto;skibidygame::pos_playerer[17] += skibidygame::salto;skibidygame::pos_playerer[25] += skibidygame::salto;skibidygame::pos_playerer[33] += skibidygame::salto;skibidygame::pos_playerer[41] += skibidygame::salto;
+}
+*/
+                skibidygame::playerer.loop(skibidygame::pos_playerer,false);
+
+    skibidygame::obj_piso.detectar_colision_4_lados(skibidygame::abajo, skibidygame::arriba, skibidygame::derecha, skibidygame::izquierda, skibidygame::pos_playerer);
+    const bool abajo_bloquete = skibidygame::colisiones[0] || skibidygame::colisiones[4] || skibidygame::colisiones[8] ||
+                                skibidygame::colisiones[12] || skibidygame::colisiones[16] || skibidygame::colisiones[20];
+    const bool aterrizo_este_frame = (skibidygame::abajo || abajo_bloquete) && !skibidygame::prevabajo;
+
+    const bool bloqueo_derecha = skibidygame::colisiones[3] || skibidygame::colisiones[7] || skibidygame::colisiones[11] ||
+                                 skibidygame::colisiones[15] || skibidygame::colisiones[19] || skibidygame::colisiones[23];
+    const bool bloqueo_izquierda = skibidygame::colisiones[2] || skibidygame::colisiones[6] || skibidygame::colisiones[10] ||
+                                   skibidygame::colisiones[14] || skibidygame::colisiones[18] || skibidygame::colisiones[22];
+
+    input(skibidygame::window,GLFW_KEY_A,skibidygame::tecla_a);
+    input(skibidygame::window,GLFW_KEY_D,skibidygame::tecla_d);
+    input(skibidygame::window,GLFW_KEY_S,skibidygame::tecla_s);
+skibidygame::playerer.loop(skibidygame::pos_playerer,false);
+    if (skibidygame::tecla_d && !bloqueo_derecha && skibidygame::pos_playerer[8] <= 0.9f)
+    {
+        skibidygame::pos_playerer[0] += skibidygame::velocidad; skibidygame::pos_playerer[8] += skibidygame::velocidad; skibidygame::pos_playerer[16] += skibidygame::velocidad;
+        skibidygame::pos_playerer[24] += skibidygame::velocidad; skibidygame::pos_playerer[32] += skibidygame::velocidad; skibidygame::pos_playerer[40] += skibidygame::velocidad;
+    }
+    if (skibidygame::tecla_a && !bloqueo_izquierda)
+    {
+        skibidygame::pos_playerer[0] -= skibidygame::velocidad; skibidygame::pos_playerer[8] -= skibidygame::velocidad; skibidygame::pos_playerer[16] -= skibidygame::velocidad;
+        skibidygame::pos_playerer[24] -= skibidygame::velocidad; skibidygame::pos_playerer[32] -= skibidygame::velocidad; skibidygame::pos_playerer[40] -= skibidygame::velocidad;
+    }
+skibidygame::playerer.loop(skibidygame::pos_playerer,true);
+    skibidygame::prevd = skibidygame::tecla_d;skibidygame::preva = skibidygame::tecla_a;
+    // leer W cada frame para mantener estado actualizado
+    input(skibidygame::window,GLFW_KEY_W,skibidygame::w);
+
+            if (!skibidygame::w and !skibidygame::tecla_a and !skibidygame::tecla_s and !skibidygame::tecla_d)
+            {
+            temporisador(skibidygame::cooldown,skibidygame::r,skibidygame::c);
+            }
+            
+
+skibidygame::caja_rng2.idle(0.2,"autito1.png","autito1_f2.png",skibidygame::caja_rng2);
+            
+                skibidygame::playerer.loop(skibidygame::pos_playerer,false);
+                // No usar contacto con bloques como skibidygame::piso: eso hace que el personaje se sienta "en el suelo"
+                // cuando en realidad estÃ¡ rebotando contra una pared o una skibidygame::caja.
+                // El skibidygame::piso real lo detecta skibidygame::obj_piso.detectar_colision_4_lados(...)
+
+
+
+if ((skibidygame::tecla_a or skibidygame::tecla_d or skibidygame::w) and skibidygame::abajo)
+{
+         
+    /* code */
+
+skibidygame::lo_otro = true;
+              if (skibidygame::que_goob_usar == 1)
+              {
+skibidygame::playerer.idle(0.2,"goob2_r.png","goob2_r2.png",skibidygame::playerer);
+              }
+              if (skibidygame::que_goob_usar == 2)
+              {
+skibidygame::playerer.idle(0.2,"goob3_r.png","goob3_r2.png",skibidygame::playerer);
+              }
+                            if (skibidygame::que_goob_usar == 3)
+              {
+skibidygame::playerer.idle(0.2,"goob4_r.png","goob4_r2.png",skibidygame::playerer);
+              }}
+              else
+              {
+            if (skibidygame::que_goob_usar == 1)
+            {
+skibidygame::playerer.cambiar_textura("goob2.png");           }
+            if (skibidygame::que_goob_usar == 2)
+            {
+skibidygame::playerer.cambiar_textura("goob3.png");           }
+            if (skibidygame::que_goob_usar == 3)
+            {
+skibidygame::playerer.cambiar_textura("goob4.png");            }
+            }
+// 2. Ejecutar la lÃ³gica de Render / AnimaciÃ³skibidygame::n
+
+    // cuanto_achicar = 0.25f (25% de compresiÃ³skibidygame::n)
+    // skibidygame::velocidad      = 12.0f (DuraciÃ³skibidygame::n ~0.26 segundos)
+
+    // SOLO si NO estÃ¡ skibidygame::aplastando, el main actualiza las posiciones normales del jugador
+            if ((!skibidygame::w and !skibidygame::tecla_a and !skibidygame::tecla_s and !skibidygame::tecla_d) and ( skibidygame::abajo or abajo_bloquete))
+{
+    /* code */
+
+
+              if (skibidygame::que_goob_usar == 1)
+              {
+skibidygame::playerer.idle(0.2,"goob2.png","goob2_f2.png",skibidygame::playerer);
+              }
+              if (skibidygame::que_goob_usar == 2)
+              {
+skibidygame::playerer.idle(0.2,"goob3.png","goob3_f2.png",skibidygame::playerer);
+              }
+                            if (skibidygame::que_goob_usar == 3)
+              {
+skibidygame::playerer.idle(0.2,"goob4.png","goob4_f2.png",skibidygame::playerer);
+              }}
+            else if (!skibidygame::lo_otro)//esto hace que lo otro no se ejecute. necesito algo para comprobar que eso no se este ejecutando
+              {
+            if (skibidygame::que_goob_usar == 1)
+            {
+skibidygame::playerer.cambiar_textura("goob2.png");           }
+            if (skibidygame::que_goob_usar == 2)
+            {
+skibidygame::playerer.cambiar_textura("goob3.png");           }
+            if (skibidygame::que_goob_usar == 3)
+            {
+skibidygame::playerer.cambiar_textura("goob4.png");            }
+            }
+    skibidygame::playerer.loop(skibidygame::pos_playerer,false); 
+
+// Reposiciona una sola vez cuando hay lado bloqueado para no patinar mientras rebota.
+if (abajo_bloquete) {skibidygame::abajo = true;}
+
+    if (aterrizo_este_frame && !skibidygame::aplastando) 
+{
+    skibidygame::aplastando = true; // Solo enciende la mecha
+}
+
+if (skibidygame::w && !skibidygame::prevW && !skibidygame::seguir_subiendo && skibidygame::abajo && !skibidygame::colisiones[2] && !skibidygame::colisiones[3] && !skibidygame::colisiones[6] && !skibidygame::colisiones[7] && !skibidygame::colisiones[14] && !skibidygame::colisiones[15] && !skibidygame::colisiones[18] && !skibidygame::colisiones[19] && !skibidygame::colisiones[22] && !skibidygame::colisiones[23])//condicion skibidygame::salto
+{
+    skibidygame::altura_salto = skibidygame::pos_playerer[17] + 0.45f; skibidygame::seguir_subiendo = true;
+}
+if (skibidygame::pos_playerer[17] > skibidygame::altura_salto or skibidygame::colisiones[17])
+{
+    skibidygame::seguir_subiendo = false; 
+}
+if (skibidygame::pos_playerer[17] < skibidygame::altura_salto && skibidygame::seguir_subiendo == true)
+{
+    skibidygame::pos_playerer[1] += skibidygame::salto;skibidygame::pos_playerer[9] += skibidygame::salto;skibidygame::pos_playerer[17] += skibidygame::salto;skibidygame::pos_playerer[25] += skibidygame::salto;skibidygame::pos_playerer[33] += skibidygame::salto;skibidygame::pos_playerer[41] += skibidygame::salto;
+}
+                if (!skibidygame::abajo && !skibidygame::seguir_subiendo) {skibidygame::pos_playerer[1] -= skibidygame::graveda;skibidygame::pos_playerer[9] -= skibidygame::graveda;skibidygame::pos_playerer[17] -= skibidygame::graveda;skibidygame::pos_playerer[25] -= skibidygame::graveda;skibidygame::pos_playerer[33] -= skibidygame::graveda;skibidygame::pos_playerer[41] -= skibidygame::graveda;}
+
+                // actualizar flanco previo
+                skibidygame::prevW = skibidygame::w;
+
+   skibidygame::playerer.loop(skibidygame::pos_playerer,true);
+   if (skibidygame::aplastando)
+   {
+       skibidygame::playerer.squash(0.05f, 0.18f, skibidygame::aplastando, skibidygame::deltaTime);
+   }
+   skibidygame::prevabajo = skibidygame::abajo;
+   skibidygame::casa.actualizar_array(skibidygame::pos_casa,false);
+   skibidygame::caja.actualizar_array(skibidygame::pos_caja,false);
+   skibidygame::caja_rng2.actualizar_array(skibidygame::pos_cajarng,false);
+   skibidygame::rng3[0].actualizar_array(skibidygame::pos_cajarng1,false);
+   skibidygame::rng3[1].actualizar_array(skibidygame::pos_cajarng2,false);
+   skibidygame::rng3[2].actualizar_array(skibidygame::pos_cajarng3,false);
+
+   if (skibidygame::adentro_de_caja){
+     skibidygame::playerer.loop_juegito_skibidy(skibidygame::obj_velocidad + skibidygame::velocidad,skibidygame::casa,skibidygame::adentro_de_caja);
+if (!skibidygame::colisiones[7] and !skibidygame::colisiones[4]){
+     skibidygame::playerer.loop_juegito_skibidy(skibidygame::obj_velocidad + skibidygame::velocidad,skibidygame::caja,skibidygame::adentro_de_caja);//por que carajos hago esto lol.ni puta idea(el if)
+}
+skibidygame::playerer.loop_juegito_skibidy(skibidygame::obj_velocidad + skibidygame::velocidad,skibidygame::caja_rng2,skibidygame::adentro_de_caja);
+if (skibidygame::rng == 3.0f){ 
+  skibidygame::playerer.loop_juegito_skibidy(skibidygame::obj_velocidad + skibidygame::velocidad,skibidygame::rng3[0],skibidygame::adentro_de_caja);
+  skibidygame::playerer.loop_juegito_skibidy(skibidygame::obj_velocidad + skibidygame::velocidad,skibidygame::rng3[1],skibidygame::adentro_de_caja);
+  skibidygame::playerer.loop_juegito_skibidy(skibidygame::obj_velocidad + skibidygame::velocidad,skibidygame::rng3[2],skibidygame::adentro_de_caja);
+}}
+else{
+    
+     skibidygame::playerer.loop_juegito_skibidy(skibidygame::obj_velocidad,skibidygame::casa,skibidygame::adentro_de_caja);
+if (!skibidygame::colisiones[7] and !skibidygame::colisiones[4]){
+     skibidygame::playerer.loop_juegito_skibidy(skibidygame::obj_velocidad,skibidygame::caja,skibidygame::adentro_de_caja);//por que carajos hago esto lol.ni puta idea(el if)
+}
+skibidygame::playerer.loop_juegito_skibidy(skibidygame::obj_velocidad,skibidygame::caja_rng2,skibidygame::adentro_de_caja);
+if (skibidygame::rng == 3 and (!skibidygame::colisiones[12] or !skibidygame::colisiones[16] or !skibidygame::colisiones[20])){
+  skibidygame::playerer.loop_juegito_skibidy(skibidygame::obj_velocidad,skibidygame::rng3[0],skibidygame::adentro_de_caja);
+  skibidygame::playerer.loop_juegito_skibidy(skibidygame::obj_velocidad,skibidygame::rng3[1],skibidygame::adentro_de_caja);
+  skibidygame::playerer.loop_juegito_skibidy(skibidygame::obj_velocidad,skibidygame::rng3[2],skibidygame::adentro_de_caja);
+}
+}
+    skibidygame::playerer.drwp();
+    skibidygame::obj_piso.drwa();
+                    if (skibidygame::pos_playerer[8] <= -1.0)
+                {//broo se logro tengo novia 
+                    skibidygame::press = false;skibidygame::alreadystart = false;
+                                        skibidygame::casa.actualizar_array(skibidygame::pos_casa_original,true);
+                                        skibidygame::caja.actualizar_array(skibidygame::pos_caja_original,true);
+                                        skibidygame::caja_rng2.actualizar_array(skibidygame::pos_cajarng_original,true);
+                                        skibidygame::rng3[0].actualizar_array(skibidygame::pos_cajarng1_original,true);
+                                                                                skibidygame::rng3[1].actualizar_array(skibidygame::pos_cajarng2_original,true);
+                                        skibidygame::rng3[2].actualizar_array(skibidygame::pos_cajarng3_original,true);
+
+                                         skibidygame::obj_velocidad = 0.004;
+memcpy(skibidygame::pos_playerer,skibidygame::pos_playerer_original,sizeof(skibidygame::pos_playerer_original));          skibidygame::playerer.loop(skibidygame::pos_playerer,true);
+                                  skibidygame::menu = true;
+                                  skibidygame::prevp = skibidygame::boton_menu; skibidygame::rng = rand() % 3 + 1;
+                                  skibidygame::que_goob_usar = rand() % 3 + 1;
+                                  if (skibidygame::que_goob_usar == 1){skibidygame::playerer.cambiar_textura("goob2.png");}
+                                                                    if (skibidygame::que_goob_usar == 2){skibidygame::playerer.cambiar_textura("goob3.png");}
+                                                                                                      if (skibidygame::que_goob_usar == 3){skibidygame::playerer.cambiar_textura("goob4.png");}
+skibidygame::fondo.cambiar_textura("fondo.png");parar_audio();
+skibidygame::w = false;  skibidygame::tecla_a = false;  skibidygame::tecla_s = false;  skibidygame::tecla_d = false; 
+                skibidygame::abajo = false;  skibidygame::c = 0;
+                                  skibidygame::caja_rng2.cambiar_textura("autito1.png");
+                }
+                
+            }
+     skibidygame::end_time = glfwGetTime();
+     cerrar_con_escape(skibidygame::window);
+     framebuffer_size_callback(skibidygame::window,1360,768);
+     glfwSwapBuffers(skibidygame::window);
+     glfwPollEvents();
+          const std::chrono::duration<double> frame_elapsed =
+         std::chrono::steady_clock::now() - frame_start;
+     const double remaining_time = skibidygame::target_frame_time - frame_elapsed.count();
+     if (remaining_time > 0.0)
+     {
+         std::this_thread::sleep_for(std::chrono::duration<double>(remaining_time));
+     }
+    
+    }}
+
+
+
+}
   if (menu_principal == 3)
   {
     cppp();
@@ -4569,5 +5207,5 @@ while (!glfwWindowShouldClose(visualizador::window))
    
     return 0;
 }
-
+/*Set-Location -LiteralPath 'C:\Users\soywi\Documents\vscode'; & 'C:\msys64\ucrt64\bin\g++.exe' -D__FUNCSIG__=__PRETTY_FUNCTION__ -DWITH_WINMM -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -DCPPHTTPLIB_OPENSSL_SUPPORT -I'C:\Program Files\ArrayFire\v3\include' -I'C:\msys64\ucrt64\include' -I'abc\soloud20200207\include' -g 'c++launcher.cpp' abc\soloud20200207\src\core\soloud.cpp abc\soloud20200207\src\core\soloud_audiosource.cpp abc\soloud20200207\src\core\soloud_bus.cpp abc\soloud20200207\src\core\soloud_core_3d.cpp abc\soloud20200207\src\core\soloud_core_basicops.cpp abc\soloud20200207\src\core\soloud_core_faderops.cpp abc\soloud20200207\src\core\soloud_core_filterops.cpp abc\soloud20200207\src\core\soloud_core_getters.cpp abc\soloud20200207\src\core\soloud_core_setters.cpp abc\soloud20200207\src\core\soloud_core_voicegroup.cpp abc\soloud20200207\src\core\soloud_core_voiceops.cpp abc\soloud20200207\src\core\soloud_fader.cpp abc\soloud20200207\src\core\soloud_fft.cpp abc\soloud20200207\src\core\soloud_fft_lut.cpp abc\soloud20200207\src\core\soloud_file.cpp abc\soloud20200207\src\core\soloud_filter.cpp abc\soloud20200207\src\core\soloud_queue.cpp abc\soloud20200207\src\core\soloud_thread.cpp abc\soloud20200207\src\audiosource\wav\dr_impl.cpp abc\soloud20200207\src\audiosource\wav\soloud_wav.cpp abc\soloud20200207\src\audiosource\wav\soloud_wavstream.cpp abc\soloud20200207\src\audiosource\wav\stb_vorbis.c abc\soloud20200207\src\backend\winmm\soloud_winmm.cpp -o 'c++launcher.exe' -L'C:\Program Files\ArrayFire\v3\lib' -L'C:\msys64\ucrt64\lib' -lafopencl -laf -lglew32 -lglfw3 -lopengl32 -lwinmm -lws2_32 -lcrypt32 -lssl -lcrypto*/
 
