@@ -12,6 +12,12 @@
 #include <chrono>
 #include <thread>
 #include <cmath> 
+#include <vector>
+#include <algorithm>
+#include <limits>
+#include "glm-master/glm/glm.hpp"
+#include "glm-master/glm/gtc/type_ptr.hpp"
+#include "glm-master/glm/gtc/matrix_transform.hpp"
 
 //drw
 void cerrar_con_escape(GLFWwindow*  window)
@@ -173,16 +179,20 @@ void APIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severi
 void iniciar_glfw_y_glew(GLFWwindow*& window,const int largo, const int ancho, const int version_opengl, const char* nombre_de_ventana)
 {
     srand(time(0));
-    glfwInit();
+
+    if (!glfwInit())
+    {
+        std::cout << "fallo glfwInit\n";
+        window = nullptr;
+        return;
+    }
+
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, version_opengl);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, version_opengl);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    if (!glfwInit())
-{
-    std::cout << "fallo glfwInit\n";
-}
- window = glfwCreateWindow(
+
+    window = glfwCreateWindow(
     largo,                   
     ancho,
     nombre_de_ventana,
@@ -190,13 +200,21 @@ void iniciar_glfw_y_glew(GLFWwindow*& window,const int largo, const int ancho, c
     NULL
 );
 
-if (!window)
-{
-    std::cout << "fallo glfwCreateWindow\n";
-    glfwTerminate();
-}
+    if (!window)
+    {
+        const char *descripcion = nullptr;
+        int codigo = glfwGetError(&descripcion);
 
-glfwMakeContextCurrent(window);
+        std::cout << "fallo glfwCreateWindow: "
+                  << codigo << " - "
+                  << (descripcion ? descripcion : "sin descripcion")
+                  << "\n";
+
+        glfwTerminate();
+        return;
+    }
+
+    glfwMakeContextCurrent(window);
 
 GLenum err = glewInit();
 
@@ -211,10 +229,12 @@ int codigo = glfwGetError(&descripcion);
 
 std::cout << "GLFW Error " << codigo << ": " << descripcion << std::endl;
 
-
+glEnable(GL_DEPTH_TEST);  
 glEnable(GL_DEBUG_OUTPUT);
 glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 glDebugMessageCallback(debugCallback, nullptr);
+glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 }
 void reproducir_audio(const char* nombre_del_wav)
 {
@@ -253,6 +273,14 @@ void temporisador(float tiempo, float& reloj,  int& contador)
             contador++;
             reloj = glfwGetTime();
         }
+}
+// Returns elapsed seconds since the previous frame and stores the current GLFW time.
+float calcular_delta_time(float& tiempo_anterior)
+{
+    const float tiempo_actual = static_cast<float>(glfwGetTime());
+    const float delta = tiempo_actual - tiempo_anterior;
+    tiempo_anterior = tiempo_actual;
+    return std::max(delta, 0.0f);
 }
 void drw(bool actualizarBuffer,unsigned int& VBO , unsigned int& VAO, unsigned int shaderProgram,int vertices,int el_numero_entre_corcheas, float* datos, GLenum glform)
 {
@@ -1561,6 +1589,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
+
+
+
 class bloquete
 {
 private:
@@ -1596,11 +1627,12 @@ float borde_arriba;
     "layout (location = 0) in vec3 aPos;\n"
     "layout (location = 1) in vec3 aColor;\n"
     "layout (location = 2) in vec2 aTexCoord;\n"
+    "uniform mat4 uMVP;\n"
     "out vec3 ourColor;\n"
     "out vec2 TexCoord;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos, 1.0);\n"
+    "   gl_Position = uMVP * vec4(aPos, 1.0);\n"
     "ourColor = aColor;\n"
     "TexCoord = vec2(aTexCoord.x,aTexCoord.y);\n"
     "}\0";
@@ -1625,12 +1657,72 @@ float borde_arriba;
          -0.5f, 0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f, // bottom right
         0.5f, 0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // bottom left
         };
+    std::vector<float> mesh_vertices;
+    unsigned int mesh_vbo = 0;
+    unsigned int mesh_vao = 0;
+    bool mesh_mode = false;
+    bool mesh_dynamic = true;
+    float mvp[16] = {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
         float destino1[9] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
         float destino2[9] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
     int wi,wa,nr,lo,com = 0;
     bool dynamci;
     unsigned char* da;
+    // Devuelve cuántos vértices almacena la malla actual.
+    std::size_t vertex_count() const
+    {
+        return mesh_mode ? mesh_vertices.size() / 8 : 6;
+    }
+
+    // Lee una coordenada XYZ de un vértice, tanto en modo antiguo como en modo malla.
+    float position_component(std::size_t vertex, int axis) const
+    {
+        if (mesh_mode)
+        {
+            return mesh_vertices[vertex * 8 + axis];
+        }
+        return vertex < 3 ? posici[vertex * 8 + axis] : posici1[(vertex - 3) * 8 + axis];
+    }
+
+    // Escribe una coordenada XYZ de un vértice sin modificar color ni UV.
+    void set_position_component(std::size_t vertex, int axis, float value)
+    {
+        if (mesh_mode)
+        {
+            mesh_vertices[vertex * 8 + axis] = value;
+        }
+        else if (vertex < 3)
+        {
+            posici[vertex * 8 + axis] = value;
+        }
+        else
+        {
+            posici1[(vertex - 3) * 8 + axis] = value;
+        }
+    }
+
+    // Calcula los límites min/max X, Y y Z de toda la geometría.
+    void bounds_3d(float bounds[6]) const
+    {
+        bounds[0] = bounds[2] = bounds[4] = std::numeric_limits<float>::max();
+        bounds[1] = bounds[3] = bounds[5] = -std::numeric_limits<float>::max();
+        for (std::size_t vertex = 0; vertex < vertex_count(); ++vertex)
+        {
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                const float value = position_component(vertex, axis);
+                bounds[axis * 2] = std::min(bounds[axis * 2], value);
+                bounds[axis * 2 + 1] = std::max(bounds[axis * 2 + 1], value);
+            }
+        }
+    }glm::mat4 model;
 public:
+// Configura un objeto con la geometría heredada de 48 floats (dos triángulos).
 void config(bool dyna,const char* ruta,float* posiciones)
 {
     for (int i = 0; i < 48; i++)
@@ -1650,9 +1742,127 @@ void config(bool dyna,const char* ruta,float* posiciones)
     generarbuffers(vbo1,vao1,posici1,24,dyna);
     textura(ruta,textrue,shadeee,wi,wa,nr,da,lo);
     dynamci = dyna;
+    mesh_mode = false;
 //
     
 }
+// Configura una malla 3D desde un array y su cantidad de floats; requiere 8 floats por vértice.
+bool config_3D(bool dyna,const char* ruta,const float* posiciones,std::size_t float_count)
+{
+    if (posiciones == nullptr || float_count < 24 || float_count % 24 != 0)
+    {
+        return false;
+    }
+
+    mesh_vertices.assign(posiciones, posiciones + float_count);
+    mesh_mode = true;
+    mesh_dynamic = dyna;
+    dynamci = dyna;
+
+    generarshader(shadeee,vertex,frsfk,sorf,sourv);
+    if (mesh_vao == 0)
+    {
+        glGenVertexArrays(1, &mesh_vao);
+        glGenBuffers(1, &mesh_vbo);
+    }
+    glBindVertexArray(mesh_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh_vbo);
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(mesh_vertices.size() * sizeof(float)),
+                 mesh_vertices.data(), dyna ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(0));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    glBindVertexArray(0);
+
+    textura(ruta,textrue,shadeee,wi,wa,nr,da,lo);
+    return true;
+}
+/* Configura una malla 3D desde un vector, delegando al overload que recibe puntero y cantidad.
+bool config_3D(bool dyna,const char* ruta,const std::vector<float>& posiciones)
+{
+    return config_3D(dyna, ruta, posiciones.data(), posiciones.size());
+}*/
+// Mantiene la API antigua con vector y la redirige al configurador 3D escalable.
+bool config(bool dyna,const char* ruta,const std::vector<float>& posiciones)
+{
+    return config_3D(dyna, ruta, posiciones.data(), posiciones.size());
+}
+// Copia una matriz MVP column-major para proyectar y transformar la malla al dibujarla.
+void set_mvp(const float* matrix_column_major)
+{
+    if (matrix_column_major != nullptr)
+    {
+        std::memcpy(mvp, matrix_column_major, sizeof(mvp));
+    }
+}
+// Builds the MVP matrix, optionally rotating the model around the supplied axis.
+void cositas_3d(bool rotar,glm::vec3 eje_rotacion,glm::vec3 posicion_vista)
+{
+    glm::mat4 model(1.0f);
+    if (rotar)
+    {
+        model = glm::rotate(model, static_cast<float>(glfwGetTime()), eje_rotacion);
+    }
+
+    const glm::mat4 view = glm::translate(glm::mat4(1.0f), posicion_vista);
+    const glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1360.0f / 768.0f, 0.1f, 100.0f);
+    const glm::mat4 mvp = projection * view * model;
+    set_mvp(glm::value_ptr(mvp));
+}
+// Informa cuántos floats tiene el objeto configurado.
+std::size_t cantidad_floats() const
+{
+    return mesh_mode ? mesh_vertices.size() : 48;
+}
+// Reemplaza los vértices de una malla 3D ya configurada; devuelve false si el formato no es válido.
+bool actualizar_malla(const std::vector<float>& posiciones)
+{
+    if (!mesh_mode || posiciones.size() < 24 || posiciones.size() % 24 != 0)
+    {
+        return false;
+    }
+    mesh_vertices = posiciones;
+    glBindBuffer(GL_ARRAY_BUFFER, mesh_vbo);
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(mesh_vertices.size() * sizeof(float)),
+                 mesh_vertices.data(), mesh_dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+    return true;
+}
+// Traslada todos los vértices de la malla en los ejes X, Y y Z.
+void mover_3d(float dx,float dy,float dz)
+{
+    for (std::size_t vertex = 0; vertex < vertex_count(); ++vertex)
+    {
+        set_position_component(vertex, 0, position_component(vertex, 0) + dx);
+        set_position_component(vertex, 1, position_component(vertex, 1) + dy);
+        set_position_component(vertex, 2, position_component(vertex, 2) + dz);
+    }
+}
+
+// Comprueba intersección entre las cajas AABB 3D de este objeto y otro.
+bool intersecta_3d(const bloquete& otro) const
+{
+    float a[6], b[6];
+    bounds_3d(a);
+    otro.bounds_3d(b);
+    return a[0] <= b[1] && a[1] >= b[0] &&
+           a[2] <= b[3] && a[3] >= b[2] &&
+           a[4] <= b[5] && a[5] >= b[4];
+}
+
+// Comprueba si un punto esta dentro de la caja AABB de este objeto.
+bool contiene_punto(const glm::vec3& punto) const
+{
+    float bounds[6];
+    bounds_3d(bounds);
+
+    return punto.x >= bounds[0] && punto.x <= bounds[1] &&
+           punto.y >= bounds[2] && punto.y <= bounds[3] &&
+           punto.z >= bounds[4] && punto.z <= bounds[5];
+}
+// Detecta solapamiento 2D entre triángulos usando el margen indicado.
 void colision(float* objeto_detectar_triangulo_1,bool& colision1,float margen,float primer_triangulo)
 {
 
@@ -1700,6 +1910,7 @@ void colision(float* objeto_detectar_triangulo_1,bool& colision1,float margen,fl
 
          
 }
+// Copia la geometría heredada o la desplaza en X/Y hacia un destino.
 void movete(bool tp,float x,float y,float paso,float* posiciones)
 {
     if (tp == true)
@@ -1727,13 +1938,53 @@ void movete(bool tp,float x,float y,float paso,float* posiciones)
     
 }
 
+// Dibuja el objeto; las mallas escalables usan todos sus vértices y la matriz MVP almacenada.
 void drwa()
 {
     glBindTexture(GL_TEXTURE_2D,textrue);
+    if (mesh_mode)
+    {
+        glUseProgram(shadeee);
+        const GLint transform_location = glGetUniformLocation(shadeee, "uMVP");
+        if (transform_location >= 0)
+        {
+            glUniformMatrix4fv(transform_location, 1, GL_FALSE, mvp);
+        }
+        glBindVertexArray(mesh_vao);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh_vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(mesh_vertices.size() * sizeof(float)),
+                        mesh_vertices.data());
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh_vertices.size() / 8));
+        glBindVertexArray(0);
+        return;
+    }
+    glUseProgram(shadeee);
+    const GLint transform_location = glGetUniformLocation(shadeee, "uMVP");
+    if (transform_location >= 0)
+    {
+        glUniformMatrix4fv(transform_location, 1, GL_FALSE, mvp);
+    }
     drw(dynamci,vbo,vao,shadeee,3,24,posici,GL_TRIANGLES);
   //  glBindTexture(GL_TEXTURE_2D,textrue);
     drw(dynamci,vbo1,vao1,shadeee,3,24,posici1,GL_TRIANGLES);
 }
+// Copia la malla escalable hacia/desde un array externo del mismo tamaño.
+void actualizar_array(float* posiciones_ext,std::size_t float_count,bool copiar_a_Posiciones_internas)
+{
+    if (!mesh_mode || posiciones_ext == nullptr || float_count != mesh_vertices.size())
+    {
+        return;
+    }
+    if (copiar_a_Posiciones_internas)
+    {
+        mesh_vertices.assign(posiciones_ext, posiciones_ext + float_count);
+    }
+    else
+    {
+        std::copy(mesh_vertices.begin(), mesh_vertices.end(), posiciones_ext);
+    }
+}
+// Detecta contacto por los cuatro lados con las cajas 2D heredadas de seis vértices.
 void detectar_colision_4_lados(bool& colision_abajo,bool& colision_arriba, bool& colision_derecha,bool& colision_izq,float *posicione_detectar)//hacer cuatro cuadrados adentro de bloke y que esas sean las hitbox para poder detectar 
 {
              izq_posici = std::min(std::min(posici[0], posici[8]),posici[16]);
@@ -1786,6 +2037,7 @@ else
     colision_abajo = false;
 }
 }
+// Copia los 48 floats heredados entre el array externo y el estado interno.
 void actualizar_array(float* posiciones_ext,bool copiar_a_Posiciones_internas)
 {
     if (!copiar_a_Posiciones_internas) {
@@ -1810,11 +2062,13 @@ else {
         else
         {posici1[i - 24] = posiciones_ext[i];} } }
 }
+// Cambia aleatoriamente la altura de la geometría heredada.
 void altura_random(float alt_max,float alt_min,float& numero_generado)
 {
     numero_generado = alt_min + (float)rand() / RAND_MAX * (alt_max - (alt_min));// numero aleatorio con coma
     posici[1] = numero_generado;posici[9] = numero_generado;posici1[1] = numero_generado;}
     //si "que_lado_randomisar" es 0 randomisa el lado de arriba. si es 1 randomisa abajo. si es 2 derecha y 3 para izquierda
+    // Cambia aleatoriamente un lado de la geometría heredada.
     void lado_random(int que_lado_randomisar,float num_max,float num_min,float numero_generado)
     {
         if (que_lado_randomisar == 0)//arriba
@@ -1840,9 +2094,11 @@ posici[0] = numero_generado;posici1[0] = numero_generado;posici1[8] = numero_gen
       
 
     }
+    // Carga otra textura para este objeto.
     void cambiar_textura(const char* ruta_a_la_tex)
 {    textura(ruta_a_la_tex,textrue,shadeee,wi,wa,nr,da,lo);
 }
+// Alterna entre dos texturas usando el temporizador de animación.
 void idle(float intervalo,const char* sprite1,const char* sprite2,bloquete& bloquete)
 {
     if (intervalo <= 0.0f)
@@ -1856,6 +2112,7 @@ void idle(float intervalo,const char* sprite1,const char* sprite2,bloquete& bloq
         bloquete.cambiar_textura((com % 2) == 1 ? sprite2 : sprite1);
     }
 }
+// Actualiza el estado de pulsación según el cursor y los límites 2D heredados.
 void modo_boton(GLFWwindow* window,int GLFW_MOUSE_BUTTON,bool& press)
 {
     borde_izq = std::min(std::min(std::min(std::min(std::min(posici[0],posici[8]),posici[16]),posici1[0]),posici1[8]),posici1[16]);
@@ -1879,6 +2136,20 @@ if (x_mouse >= borde_izq and x_mouse <= borde_der and y_mouse >= borde_abajo and
 
 else
 {press = false;}}
+void main_3d(glm::vec3 cameraPos,glm::vec3 cameraFront,glm::vec3 cameraUp,bloquete& bloquete)
+{            glm::mat4 view;
+            view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), 
+  		    glm::vec3(0.0f, 0.0f, 0.0f), 
+  		    glm::vec3(0.0f, 1.0f, 0.0f));
+    
+    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp); 
+    
+    glm::mat4 model(1.0f);
+glm::mat4 projection = glm::perspective(
+    glm::radians(45.0f), 1360.0f / 768.0f, 0.1f, 100.0f
+);
+glm::mat4 mvp = projection * view * model;
+bloquete.set_mvp(glm::value_ptr(mvp));}
 };
  
 void mover_wasd(GLFWwindow* window,float*& posiciones,bool press,float velocidad)
@@ -2409,7 +2680,7 @@ void audio(const char *ruta_al_audio,float duracion,float& r,int &c,int &i)
 //pattern_rute es el nombre/ruta del archivo de audio. pattern es el numero de patron que hay que reproducir y sirve para algunas cosas mas.p_gen es el numero de patrones
 void audio_pattern(const char *pattern_rute,int &pattern_ext,int p_gen,float duration)
 {
-audio_manage::audio(pattern_rute,duration,r,cc,u);
+audio(pattern_rute,duration,r,cc,u);
 if (cc == 1 and u == 1)
 {
     pattern_ext = rand() % 5;cc = 0;pp = pattern + 1;u = 0;cc = 0;
@@ -2419,58 +2690,287 @@ else if (pp == pattern_ext + 1 and pattern_ext == 0) {pattern_ext = rand() % p_g
 pattern = pattern_ext;
 }
 };
-/*
-if (pattern == 0 and pp != 1)
+void setMat4(GLuint shader_program,const std::string& name,const glm::mat4& mat)
 {
-audio("pattern_1.wav",20,rr,cc,u);
-if (cc == 1)
+    glUseProgram(shader_program);
+    glUniformMatrix4fv(glGetUniformLocation(shader_program, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
+}
+//al principio del while poner este y al final poner el que termina con 2
+void limitar_fps_1(std::chrono::steady_clock::time_point &frame_start,float &frameActual,float &deltaTime,float &ultimoFrame)
+{             frame_start = std::chrono::steady_clock::now();
+ frameActual = static_cast<float>(glfwGetTime());
+    deltaTime = frameActual - ultimoFrame;
+    ultimoFrame = frameActual;}
+void limitar_fps_2 (float &end_time,double remaining_time,float target_frame_time,std::chrono::duration<double> frame_elapsed)
 {
-    pattern = rand() % 5;cc = 0;pp = 1;u = 0;
-}
-}
-else if (pp == 1 and pattern == 0) {pattern = rand() % 5;}
-//
-if (pattern == 1 and pp != 2 )
-{
-audio("pattern_2.wav",20,rr,cc,u);
-if (cc == 1)
-{
-    pattern = rand() % 5;cc = 0;pp = 2;u = 0;
-}
-}
-else if (pp == 2 and pattern == 1) {pattern = rand() % 5;}
-//
-if (pattern == 2 and pp != 3)
-{
-audio("pattern_3.wav",20,rr,cc,u);
-if (cc == 1)
-{
-    pattern = rand() % 5;cc = 0;pp = 3;u = 0;
-}
-}
-else if (pp == 3 and pattern == 2) {pattern = rand() % 5;}
-//
-if (pattern == 3 and pp != 4)
-{
-audio("pattern_4.wav",20,rr,cc,u);
-if (cc == 1)
-{
-    pattern = rand() % 5;cc = 0;pp = 4;u = 0;
-}
-}
-else if (pp == 4 and pattern == 3) {pattern = rand() % 5;}
-//
-if (pattern == 4 and pp != 5)
-{
-audio("pattern_5.wav",20,rr,cc,u);
-if (cc == 1)
-{
-    pattern = rand() % 5;cc = 0;pp = 5;u = 0;
-}
-}
-else if (pp == 5 and pattern == 4) {pattern = rand() % 5;}
-/////////////lol*/
+         end_time = glfwGetTime();
+                remaining_time = target_frame_time - frame_elapsed.count();
+     if (remaining_time > 0.0)
+     {
+         std::this_thread::sleep_for(std::chrono::duration<double>(remaining_time));
+     }
+    
+    }
+    class camera
+    {
+public:
+glm::vec3 posicion   = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
 
+bool firstMouse = true;
+float yaw   = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
+float pitch =  0.0f;
+float lastX =  1360.0f / 2.0;
+float lastY =  768.0 / 2.0;
+float fov   =  45.0f;
 
+// timing
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
+            glm::vec3 cameraTarget;
+            glm::vec3 cameraDirection; 
+            glm::vec3 up; 
+            glm::vec3 cameraRight;
+static void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+    camera *self = static_cast<camera*>(glfwGetWindowUserPointer(window));
+    if (self == nullptr)
+        return;
 
-//
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (self->firstMouse)
+    {
+        self->lastX = xpos;
+        self->lastY = ypos;
+        self->firstMouse = false;
+    }
+
+    float xoffset = xpos - self->lastX;
+    float yoffset = self->lastY - ypos; // reversed since y-coordinates go from bottom to top
+    self->lastX = xpos;
+    self->lastY = ypos;
+
+    float sensitivity = 0.1f; // change this value to your liking
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    self->yaw += xoffset;
+    self->pitch += yoffset;
+
+    // make sure that when pitch is out of bounds, screen doesn't get flipped
+    if (self->pitch > 89.0f)
+        self->pitch = 89.0f;
+    if (self->pitch < -89.0f)
+        self->pitch = -89.0f;
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(self->yaw)) * cos(glm::radians(self->pitch));
+    front.y = sin(glm::radians(self->pitch));
+    front.z = sin(glm::radians(self->yaw)) * cos(glm::radians(self->pitch));
+    self->cameraFront = glm::normalize(front);
+}
+void main_loop_lol(GLFWwindow *window,glm::vec3 &cameraPos_ext,glm::vec3 &cameraFront_ext,glm::vec3 &cameraUp_ext)
+{
+            glfwSetWindowUserPointer(window, this);
+            glfwSetCursorPosCallback(window, camera::mouse_callback);
+
+            const float tiempo_actual = static_cast<float>(glfwGetTime());
+            deltaTime = tiempo_actual - lastFrame;
+            lastFrame = tiempo_actual;
+
+            glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+            glm::vec3 cameraDirection = glm::normalize(posicion - cameraTarget);
+            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); 
+            glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+        
+                    const float radius = 10.0f;
+            float camX = sin(glfwGetTime()) * radius;
+            float camZ = cos(glfwGetTime()) * radius;
+            const float cameraSpeed = 2.5f * deltaTime; // adjust accordingly
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        posicion += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        posicion -= cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        posicion -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        posicion += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
+        cameraPos_ext = posicion;
+        cameraFront_ext = cameraFront;
+        cameraUp_ext = cameraUp;
+
+        glm::vec3 direction;
+direction.x = cos(glm::radians(yaw)); // Note that we convert the angle to radians first
+direction.z = sin(glm::radians(yaw));
+direction.y = sin(glm::radians(pitch));  
+direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+direction.y = sin(glm::radians(pitch));
+direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+}
+void reiniciar_posicion()
+{
+    posicion = glm::vec3(0.0f, 0.0f, 3.0f);
+    yaw = -90.0f;
+    pitch = 0.0f;
+    firstMouse = true;
+    cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+}
+    };
+class Shader
+{
+public:
+    unsigned int ID;
+    // constructor generates the shader on the fly
+    // ------------------------------------------------------------------------
+    Shader(const char* vertexPath, const char* fragmentPath)
+    {
+        // 1. retrieve the vertex/fragment source code from filePath
+        std::string vertexCode;
+        std::string fragmentCode;
+        std::ifstream vShaderFile;
+        std::ifstream fShaderFile;
+        // ensure ifstream objects can throw exceptions:
+        vShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
+        fShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
+        try 
+        {
+            // open files
+            vShaderFile.open(vertexPath);
+            fShaderFile.open(fragmentPath);
+            std::stringstream vShaderStream, fShaderStream;
+            // read file's buffer contents into streams
+            vShaderStream << vShaderFile.rdbuf();
+            fShaderStream << fShaderFile.rdbuf();		
+            // close file handlers
+            vShaderFile.close();
+            fShaderFile.close();
+            // convert stream into string
+            vertexCode = vShaderStream.str();
+            fragmentCode = fShaderStream.str();			
+        }
+        catch (std::ifstream::failure& e)
+        {
+            std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+        }
+        const char* vShaderCode = vertexCode.c_str();
+        const char * fShaderCode = fragmentCode.c_str();
+        // 2. compile shaders
+        unsigned int vertex, fragment;
+        // vertex shader
+        vertex = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertex, 1, &vShaderCode, NULL);
+        glCompileShader(vertex);
+        checkCompileErrors(vertex, "VERTEX");
+        // fragment Shader
+        fragment = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragment, 1, &fShaderCode, NULL);
+        glCompileShader(fragment);
+        checkCompileErrors(fragment, "FRAGMENT");
+        // shader Program
+        ID = glCreateProgram();
+        glAttachShader(ID, vertex);
+        glAttachShader(ID, fragment);
+        glLinkProgram(ID);
+        checkCompileErrors(ID, "PROGRAM");
+        // delete the shaders as they're linked into our program now and no longer necessary
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
+
+    }
+    // activate the shader
+    // ------------------------------------------------------------------------
+    void use() const
+    { 
+        glUseProgram(ID); 
+    }
+    // utility uniform functions
+    // ------------------------------------------------------------------------
+    void setBool(const std::string &name, bool value) const
+    {         
+        glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value); 
+    }
+    // ------------------------------------------------------------------------
+    void setInt(const std::string &name, int value) const
+    { 
+        glUniform1i(glGetUniformLocation(ID, name.c_str()), value); 
+    }
+    // ------------------------------------------------------------------------
+    void setFloat(const std::string &name, float value) const
+    { 
+        glUniform1f(glGetUniformLocation(ID, name.c_str()), value); 
+    }
+    // ------------------------------------------------------------------------
+    void setVec2(const std::string &name, const glm::vec2 &value) const
+    { 
+        glUniform2fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]); 
+    }
+    void setVec2(const std::string &name, float x, float y) const
+    { 
+        glUniform2f(glGetUniformLocation(ID, name.c_str()), x, y); 
+    }
+    // ------------------------------------------------------------------------
+    void setVec3(const std::string &name, const glm::vec3 &value) const
+    { 
+        glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]); 
+    }
+    void setVec3(const std::string &name, float x, float y, float z) const
+    { 
+        glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z); 
+    }
+    // ------------------------------------------------------------------------
+    void setVec4(const std::string &name, const glm::vec4 &value) const
+    { 
+        glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]); 
+    }
+    void setVec4(const std::string &name, float x, float y, float z, float w) const
+    { 
+        glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w); 
+    }
+    // ------------------------------------------------------------------------
+    void setMat2(const std::string &name, const glm::mat2 &mat) const
+    {
+        glUniformMatrix2fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    }
+    // ------------------------------------------------------------------------
+    void setMat3(const std::string &name, const glm::mat3 &mat) const
+    {
+        glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    }
+    // ------------------------------------------------------------------------
+    void setMat4(const std::string &name, const glm::mat4 &mat) const
+    {
+        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    }
+
+private:
+    // utility function for checking shader compilation/linking errors.
+    // ------------------------------------------------------------------------
+    void checkCompileErrors(GLuint shader, std::string type)
+    {
+        GLint success;
+        GLchar infoLog[1024];
+        if (type != "PROGRAM")
+        {
+            glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+            if (!success)
+            {
+                glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+                std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            }
+        }
+        else
+        {
+            glGetProgramiv(shader, GL_LINK_STATUS, &success);
+            if (!success)
+            {
+                glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+                std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            }
+        }
+    }
+};
