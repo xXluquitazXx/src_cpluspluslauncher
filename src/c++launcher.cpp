@@ -1190,7 +1190,20 @@ float velocidad = 0.0006;
         float cooldown = 0.4f, r = 0.0f;int c = 0;
 
 } // namespace skibidygame
+void cpppp(GLFWwindow *window,glm::vec3 &camera_pos,glm::vec3 &camera_front,glm::vec3 &camera_up,camera &cam,int &menu,bloquete *bloq,int cantidad_bloques)
+{
+    cam.main_loop_lol(window,camera_pos,camera_front,camera_up);
 
+ for (int i = 0; i < cantidad_bloques; ++i)
+{
+    bloq[i].main_3d(camera_pos, camera_front, camera_up, bloq[i]);
+    bloq[i].drwa();
+    if (bloq[i].contiene_punto(cam.posicion))
+    {
+        menu = i + 1;
+    }
+}
+}
 int main(void) {
    std::cout<<"loading: this can take a while"<<std::endl;
     int menu_principal = 67;
@@ -1199,7 +1212,6 @@ int main(void) {
     const long double dos = 2.0l;
     const long double trentidos = 32.0l;
     const long double cientodiez = 110.0l;
-    const long double pi = 3.14L;
     long double numero_final;
     long double numero_final1;
     long long error12 = -9223372036854775808LL;
@@ -1228,7 +1240,134 @@ int main(void) {
     int ciclos;
     std::string outtt = "abc";
     int menu_juegos = 0;
-    srand(time(0));
+    int cantidad_bloques = 10;
+
+    glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
+
+bool firstMouse = true;
+float yaw   = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
+float pitch =  0.0f;
+float lastX =  1360.0f / 2.0;
+float lastY =  768.0 / 2.0;
+float fov   =  45.0f;
+
+// timing
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
+
+     float cubo_pos[288] = {
+    // Cara frontal
+    -0.5f,-0.5f, 0.5f, 1.0f,0.2f,0.2f, 0.0f,0.0f,
+     0.5f,-0.5f, 0.5f, 1.0f,0.2f,0.2f, 1.0f,0.0f,
+     0.5f, 0.5f, 0.5f, 1.0f,0.2f,0.2f, 1.0f,1.0f,
+    -0.5f,-0.5f, 0.5f, 1.0f,0.2f,0.2f, 0.0f,0.0f,
+     0.5f, 0.5f, 0.5f, 1.0f,0.2f,0.2f, 1.0f,1.0f,
+    -0.5f, 0.5f, 0.5f, 1.0f,0.2f,0.2f, 0.0f,1.0f,
+
+    // Cara derecha
+     0.5f,-0.5f, 0.5f, 0.2f,1.0f,0.2f, 0.0f,0.0f,
+     0.5f,-0.5f,-0.5f, 0.2f,1.0f,0.2f, 1.0f,0.0f,
+     0.5f, 0.5f,-0.5f, 0.2f,1.0f,0.2f, 1.0f,1.0f,
+     0.5f,-0.5f, 0.5f, 0.2f,1.0f,0.2f, 0.0f,0.0f,
+     0.5f, 0.5f,-0.5f, 0.2f,1.0f,0.2f, 1.0f,1.0f,
+     0.5f, 0.5f, 0.5f, 0.2f,1.0f,0.2f, 0.0f,1.0f,
+
+    // Cara trasera
+     0.5f,-0.5f,-0.5f, 0.2f,0.2f,1.0f, 0.0f,0.0f,
+    -0.5f,-0.5f,-0.5f, 0.2f,0.2f,1.0f, 1.0f,0.0f,
+    -0.5f, 0.5f,-0.5f, 0.2f,0.2f,1.0f, 1.0f,1.0f,
+     0.5f,-0.5f,-0.5f, 0.2f,0.2f,1.0f, 0.0f,0.0f,
+    -0.5f, 0.5f,-0.5f, 0.2f,0.2f,1.0f, 1.0f,1.0f,
+     0.5f, 0.5f,-0.5f, 0.2f,0.2f,1.0f, 0.0f,1.0f,
+
+    // Cara izquierda
+    -0.5f,-0.5f,-0.5f, 1.0f,1.0f,0.2f, 0.0f,0.0f,
+    -0.5f,-0.5f, 0.5f, 1.0f,1.0f,0.2f, 1.0f,0.0f,
+    -0.5f, 0.5f, 0.5f, 1.0f,1.0f,0.2f, 1.0f,1.0f,
+    -0.5f,-0.5f,-0.5f, 1.0f,1.0f,0.2f, 0.0f,0.0f,
+    -0.5f, 0.5f, 0.5f, 1.0f,1.0f,0.2f, 1.0f,1.0f,
+    -0.5f, 0.5f,-0.5f, 1.0f,1.0f,0.2f, 0.0f,1.0f,
+
+    // Cara superior
+    -0.5f, 0.5f, 0.5f, 1.0f,0.2f,1.0f, 0.0f,0.0f,
+     0.5f, 0.5f, 0.5f, 1.0f,0.2f,1.0f, 1.0f,0.0f,
+     0.5f, 0.5f,-0.5f, 1.0f,0.2f,1.0f, 1.0f,1.0f,
+    -0.5f, 0.5f, 0.5f, 1.0f,0.2f,1.0f, 0.0f,0.0f,
+     0.5f, 0.5f,-0.5f, 1.0f,0.2f,1.0f, 1.0f,1.0f,
+    -0.5f, 0.5f,-0.5f, 1.0f,0.2f,1.0f, 0.0f,1.0f,
+
+    // Cara inferior
+    -0.5f,-0.5f,-0.5f, 0.2f,1.0f,1.0f, 0.0f,0.0f,
+     0.5f,-0.5f,-0.5f, 0.2f,1.0f,1.0f, 1.0f,0.0f,
+     0.5f,-0.5f, 0.5f, 0.2f,1.0f,1.0f, 1.0f,1.0f,
+    -0.5f,-0.5f,-0.5f, 0.2f,1.0f,1.0f, 0.0f,0.0f,
+     0.5f,-0.5f, 0.5f, 0.2f,1.0f,1.0f, 1.0f,1.0f,
+    -0.5f,-0.5f, 0.5f, 0.2f,1.0f,1.0f, 0.0f,1.0f
+};float piso_pos[288] = {
+    // Cara superior
+    -5.0f, -1.0f, -5.0f, 0.3f, 0.8f, 0.3f, 0.0f, 0.0f,
+     5.0f, -1.0f, -5.0f, 0.3f, 0.8f, 0.3f, 1.0f, 0.0f,
+     5.0f, -1.0f,  5.0f, 0.3f, 0.8f, 0.3f, 1.0f, 1.0f,
+
+    -5.0f, -1.0f, -5.0f, 0.3f, 0.8f, 0.3f, 0.0f, 0.0f,
+     5.0f, -1.0f,  5.0f, 0.3f, 0.8f, 0.3f, 1.0f, 1.0f,
+    -5.0f, -1.0f,  5.0f, 0.3f, 0.8f, 0.3f, 0.0f, 1.0f,
+
+    // Cara inferior
+    -5.0f, -1.2f,  5.0f, 0.2f, 0.5f, 0.2f, 0.0f, 0.0f,
+     5.0f, -1.2f,  5.0f, 0.2f, 0.5f, 0.2f, 1.0f, 0.0f,
+     5.0f, -1.2f, -5.0f, 0.2f, 0.5f, 0.2f, 1.0f, 1.0f,
+
+    -5.0f, -1.2f,  5.0f, 0.2f, 0.5f, 0.2f, 0.0f, 0.0f,
+     5.0f, -1.2f, -5.0f, 0.2f, 0.5f, 0.2f, 1.0f, 1.0f,
+    -5.0f, -1.2f, -5.0f, 0.2f, 0.5f, 0.2f, 0.0f, 1.0f,
+
+    // Frente
+    -5.0f, -1.2f,  5.0f, 0.2f, 0.6f, 0.2f, 0.0f, 0.0f,
+     5.0f, -1.2f,  5.0f, 0.2f, 0.6f, 0.2f, 1.0f, 0.0f,
+     5.0f, -1.0f,  5.0f, 0.2f, 0.6f, 0.2f, 1.0f, 1.0f,
+
+    -5.0f, -1.2f,  5.0f, 0.2f, 0.6f, 0.2f, 0.0f, 0.0f,
+     5.0f, -1.0f,  5.0f, 0.2f, 0.6f, 0.2f, 1.0f, 1.0f,
+    -5.0f, -1.0f,  5.0f, 0.2f, 0.6f, 0.2f, 0.0f, 1.0f,
+
+    // Atrás
+     5.0f, -1.2f, -5.0f, 0.2f, 0.5f, 0.2f, 0.0f, 0.0f,
+    -5.0f, -1.2f, -5.0f, 0.2f, 0.5f, 0.2f, 1.0f, 0.0f,
+    -5.0f, -1.0f, -5.0f, 0.2f, 0.5f, 0.2f, 1.0f, 1.0f,
+
+     5.0f, -1.2f, -5.0f, 0.2f, 0.5f, 0.2f, 0.0f, 0.0f,
+    -5.0f, -1.0f, -5.0f, 0.2f, 0.5f, 0.2f, 1.0f, 1.0f,
+     5.0f, -1.0f, -5.0f, 0.2f, 0.5f, 0.2f, 0.0f, 1.0f,
+
+    // Izquierda
+    -5.0f, -1.2f, -5.0f, 0.2f, 0.4f, 0.2f, 0.0f, 0.0f,
+    -5.0f, -1.2f,  5.0f, 0.2f, 0.4f, 0.2f, 1.0f, 0.0f,
+    -5.0f, -1.0f,  5.0f, 0.2f, 0.4f, 0.2f, 1.0f, 1.0f,
+
+    -5.0f, -1.2f, -5.0f, 0.2f, 0.4f, 0.2f, 0.0f, 0.0f,
+    -5.0f, -1.0f,  5.0f, 0.2f, 0.4f, 0.2f, 1.0f, 1.0f,
+    -5.0f, -1.0f, -5.0f, 0.2f, 0.4f, 0.2f, 0.0f, 1.0f,
+
+    // Derecha
+     5.0f, -1.2f,  5.0f, 0.2f, 0.4f, 0.2f, 0.0f, 0.0f,
+     5.0f, -1.2f, -5.0f, 0.2f, 0.4f, 0.2f, 1.0f, 0.0f,
+     5.0f, -1.0f, -5.0f, 0.2f, 0.4f, 0.2f, 1.0f, 1.0f,
+
+     5.0f, -1.2f,  5.0f, 0.2f, 0.4f, 0.2f, 0.0f, 0.0f,
+     5.0f, -1.0f, -5.0f, 0.2f, 0.4f, 0.2f, 1.0f, 1.0f,
+     5.0f, -1.0f,  5.0f, 0.2f, 0.4f, 0.2f, 0.0f, 1.0f
+};float tiempo_anterior = static_cast<float>(glfwGetTime());    float Yaw;
+    float Pitch;
+    // camera options
+    float MovementSpeed;
+    float MouseSensitivity;
+    float Zoom;
+glm::vec3 camera_pos,camera_front,camera_up;    srand(time(0));
+    bool camara_reiniciada = false;
+    int seccion_anterior = menu_principal;
     if (!configuracion::conf.is_open())
     {
       std::ofstream creararchivoconfig("configuracion.conf.enc");
@@ -1279,28 +1418,165 @@ int main(void) {
         configuracion::h = configuracion::soloud.play(configuracion::idk,1 ,0 , 0);
 
     }
-    
+    bloquete piso;GLFWwindow *window;camera cam;
+iniciar_glfw_y_glew(window,1360,768,3,"c++launcher");
+if (!window)
+{
+    return 1;
+}
+bloquete bloq[10];
+float posiciones_bloq[10][288] = {};
+const float pi = 3.14159265359f;
+const float radio_bloques = 3.0f;
+piso.config_3D(false,"floor.png",piso_pos,288);
+for (int i = 0; i < 10; ++i)
+{
+    const float angulo = (2.0f * pi * i) / 10;
+    const float desplazamiento_x = std::cos(angulo) * radio_bloques;
+    const float desplazamiento_z = std::sin(angulo) * radio_bloques;
+
+    for (int j = 0; j < 288; j += 8)
+    {
+        posiciones_bloq[i][j] = cubo_pos[j] + desplazamiento_x;
+        posiciones_bloq[i][j + 1] = cubo_pos[j + 1];
+        posiciones_bloq[i][j + 2] = cubo_pos[j + 2] + desplazamiento_z;
+        posiciones_bloq[i][j + 3] = cubo_pos[j + 3];
+        posiciones_bloq[i][j + 4] = cubo_pos[j + 4];
+        posiciones_bloq[i][j + 5] = cubo_pos[j + 5];
+        posiciones_bloq[i][j + 6] = cubo_pos[j + 6];
+        posiciones_bloq[i][j + 7] = cubo_pos[j + 7];
+    }
+
+}
+const char* texturas_bloques[8] = {
+    "c++launcher_encrip.png",
+    "c++launcher_opengl.png",
+    "c++launcher_juegos.png",
+    "c++launcher_herramientas.png",
+    "c++launcher_licensia.png",
+    "c++launcher_config.png",
+    "c++launcher_exit.png",
+    "c++launcher_salir.png"
+};
+for (int i = 0; i < 8; ++i)
+{
+    bloq[i].config_3D(false, texturas_bloques[i], posiciones_bloq[i], 288);
+}
+
+
+
+
+
+
+
+
 while (true) {
- 
- 
-        cppp();
-        std::cout<<"1-encriptacion."<<std::endl;
-        std::cout<<"2-opengl"<<std::endl;
-        std::cout<<"3-juegos de terminal"<<std::endl;
-        std::cout<<"4-herramientas."<<std::endl;
-        std::cout<<"9-licensia."<<std::endl;
-        std::cout<<"0-configuracin."<<std::endl;
-        std::cout<<"10-salir"<<std::endl;
-        std::cin >> menu_principal;
+ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+ if (menu_principal != seccion_anterior)
+ {
+     if (menu_principal != 67)
+     {
+         cam.reiniciar_posicion();
+         camera_pos = cam.posicion;
+         camera_front = cam.cameraFront;
+         camera_up = cam.cameraUp;
+         if (menu_principal == 1)
+         {
+             const char* texturas_encriptar[6] = {
+                 "c++launcher_encripcion_ascii.png",
+                 "c++launcher_desenc_ascii.png",
+                 "c++launcher_encripcion_archivos.png",
+                 "c++launcher_desenc_archivo_cpu.png",
+                 "c++launcher_encripcion_archivos_gpu.png",
+                 "c++launcher_desenc_archivo.png"
+             };
+             for (int i = 0; i < 6; ++i)
+             {
+                 bloq[i].cambiar_textura(texturas_encriptar[i]);
+             }
+         }
+         else if (menu_principal == 2)
+         {
+             const char* texturas_opengl[8] = {
+                 "c++launcher_opengl_triangulo.png",
+                 "c++launcher_opengl_triangulorebotin.png",
+                 "c++launcher_opengl_ezquivar.png",
+                 "c++launcher_opengl_ezquivar_2.png",
+                 "c++launcher_opengl_thompson.png",
+                 "c++launcher_opengl_flapy.png",
+                 "c++launcher_opengl_sick_goob.png",
+                 "c++launcher_opengl_cubo3d.png"
+             };
+             for (int i = 0; i < 8; ++i)
+             {
+                 bloq[i].cambiar_textura(texturas_opengl[i]);
+             }
+         }
+         else if (menu_principal == 4)
+         {
+             const char* texturas_herramientas[5] = {
+                 "c++launcher_herramientas_web.png",
+                 "c++launcher_herramientas_clvgen.png",
+                 "c++launcher_herramientas_musica.png",
+                 "c++launcher_herramientas_syp_arch.png",
+                 "c++launcher_herramientas_fotos.png"
+             };
+             for (int i = 0; i < 5; ++i)
+             {
+                 bloq[i].cambiar_textura(texturas_herramientas[i]);
+             }
+         }
+
+
+                                    
+
+                           
+
+
+
+
+
+
+
+
+
+
+         
+     }
+     camara_reiniciada = true;
+     seccion_anterior = menu_principal;
+ }
+ if (menu_principal == 67)
+ {
+     camara_reiniciada = false;
+ }
+ if ( menu_principal == 67){
+cam.main_loop_lol(window,camera_pos,camera_front,camera_up);
+cpppp(window,camera_pos,camera_front,camera_up,cam,menu_principal,bloq,7);
+piso.main_3d(camera_pos, camera_front, camera_up, piso);
+piso.drwa();}
+
+
         if (menu_principal == 1) {
-            cppp();
+            if (!camara_reiniciada)
+            {
+                cam.reiniciar_posicion();
+                camera_pos = cam.posicion;
+                camera_front = cam.cameraFront;
+                camera_up = cam.cameraUp;
+                camara_reiniciada = true;
+            }
+
+            menu_encriptar = 0;piso.main_3d(camera_pos, camera_front, camera_up, piso);
+piso.drwa();
+            cpppp(window,camera_pos,camera_front,camera_up,cam,menu_encriptar,bloq,6);
             std::cout<<"1-encriptar"<<std::endl;
             std::cout<<"2-desencriptar"<<std::endl;
             std::cout<<"3-encriptar archivos(cpu_backend)"<<std::endl;
             std::cout<<"4-desencriptar archivos(cpu_bakend)"<<std::endl;
             std::cout<<"5-encriptar archivos(gpu_backend)"<<std::endl;
             std::cout<<"6-desencriptar archivos(gpu_bakend)"<<std::endl;
-            std::cin >> menu_encriptar;
+         //   std::cin >> menu_encriptar;
 
             if (menu_encriptar == 1) {
                 system("cls");
@@ -1497,10 +1773,15 @@ while (true) {
                 std::cin>>c1;
             }
 
-            if (menu_encriptar < 1 || menu_encriptar > 6) {
+            if (menu_encriptar != 0 && (menu_encriptar < 1 || menu_encriptar > 6)) {
                 std::cout<<"opcion invalida"<<std::endl;
                 std::cout<<"apreta cualquier letra para continuar"<<std::endl;
                 std::cin>>c1;
+            }
+
+            if (menu_encriptar >= 1 && menu_encriptar <= 6)
+            {
+                menu_principal = 67;
             }
         }
     
@@ -1510,16 +1791,26 @@ while (true) {
 
  if (menu_principal == 2)
   {
-  cppp();
-  std::cout <<"1-triangulo"<<std::endl;
+            if (!camara_reiniciada)
+            {
+                cam.reiniciar_posicion();
+                camera_pos = cam.posicion;
+                camera_front = cam.cameraFront;
+                camera_up = cam.cameraUp;
+                camara_reiniciada = true;
+            }
+piso.main_3d(camera_pos, camera_front, camera_up, piso);
+piso.drwa();
+            menu_opengl = 0;
+            cpppp(window,camera_pos,camera_front,camera_up,cam,menu_opengl,bloq,8);  std::cout <<"1-triangulo"<<std::endl;
   std::cout <<"2-triangulo que rebota"<<std::endl;
   std::cout <<"3-juego de ezquivar"<<std::endl;
   std::cout <<"4-juego de ezquivar 2.0"<<std::endl;
   std::cout <<"5-atomos segun thompson"<<std::endl;
   std::cout<<"6-flappy bodrio con una sola textura(sus.png en los archivos)"<<std::endl;
   std::cout<<"7-sick goob"<<std::endl;
+  std::cout<<"8-cubo 3D con la textura que quieras"<<std::endl;
 
-  std::cin>>menu_opengl;
 
 
 
@@ -1527,22 +1818,6 @@ while (true) {
   
  if (menu_opengl == 1)
   {
-       GLFWwindow* window;
-
-    /* Initialize the library */
-    if (!glfwInit())
-        return -1;
-
-    /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "Hello triangle", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        return -1;
-    }
-
-    /* Make the window's context current */
-    glfwMakeContextCurrent(window);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -1572,14 +1847,6 @@ while (true) {
   }
   if (menu_opengl == 2)
   {
-        GLFWwindow* window;
-
-    /* Initialize the library */
-    if (!glfwInit()) 
-    {
-     return -1;
-    }
-    
 
      
 
@@ -1596,19 +1863,6 @@ while (true) {
     boucingtriangl::b, boucingtriangl::f,
     };
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1360, 768, "Hello triangle", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        return -1;
-    }
-
-    /* Make the window's context current */
-    glfwMakeContextCurrent(window);
-    if (glewInit() != GLEW_OK)
-     {
-       std::cout<<"susamongusfla::toilet";
-     }
 
 
         glGenBuffers(1, &boucingtriangl::buffminer);//generar bufer
@@ -1743,27 +1997,15 @@ while (true) {
   }
   if (menu_opengl == 3)
  {
-      glfwInit();
-    GLFWwindow* window;
+
     srand(time(0));
      /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1360, 768, "Hello triangle", NULL, NULL);
-    if (!window)
-    {
-        std::cout<<"tricota"<<std::endl;
-        glfwTerminate();
-        return -1;
 
-    }
      mov::estela[1] = 1;
      mov::estela[3] = 1;
      mov::estela[5] = 1;
     /* Make the window's context current */
-    glfwMakeContextCurrent(window);
-    if (glewInit() != GLEW_OK)
-     {
-       std::cout<<"susamongusfla::toilet";
-     }
+  
         glGenBuffers(1, &mov::buffminer);//generar bufer
         glBindBuffer(GL_ARRAY_BUFFER, mov::buffminer);//definir tipo de bufer creo
         glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), mov::posiciones, GL_STATIC_DRAW );//pasarle datos al buffer
@@ -1941,27 +2183,11 @@ while (true) {
  {
   cppp();
       srand(time(0));
-      glfwInit();
-          glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow* window = glfwCreateWindow(1360, 768, "using moderngl", NULL, NULL);
-    if (!window)
-    {
-        std::cout << "fallo glfwCreateWindow\n";
-        glfwTerminate();
-        return -1;
-    }
-    if (!glfwInit())
-    {
-        std::cout << "fallo glfwInit\n";
-        return -1;
-    }
 
 
 
-    glfwMakeContextCurrent(window);
-    glewInit();
+
+
     const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
     "void main()\n"
@@ -2351,11 +2577,7 @@ juegitogl::posiciones3[7] = 0.8f;
  if (menu_opengl == 5)
  {
       
-    srand(time(0));
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     while(true){
 
     
@@ -4118,8 +4340,7 @@ if (err != GLEW_OK)
  
 
 if (menu_opengl == 6)
-{    iniciar_glfw_y_glew(fla::window,1360,768,3,fla::rutardopolis);
-    fla::fondaso.config(false,"sus.png",fla::pooop);
+{    fla::fondaso.config(false,"sus.png",fla::pooop);
     fla::tuberia_ap.config(true,"sus.png",fla::tuberia_arriba);
     fla::tuberia_dawn.config(true,"sus.png",fla::tuberia_abajo);
     fla::skibidy.config(false,"sus.png",fla::poop);
@@ -4193,7 +4414,6 @@ else
     skibidygame::n3 = 0.0f;
     skibidygame::pattern = rand() % 5;
     skibidygame::que_goob_usar = rand() % 3 + 1;
-iniciar_glfw_y_glew(skibidygame::window,1360,768,3,"yaya");
 skibidygame::fondo.config(true,"fondo.png",skibidygame::pos_fondo);
 if (skibidygame::que_goob_usar == 1){skibidygame::playerer.config("goob2.png",skibidygame::pos_playerer);}
 if (skibidygame::que_goob_usar == 2){skibidygame::playerer.config("goob3.png",skibidygame::pos_playerer);}
@@ -4617,14 +4837,90 @@ skibidygame::w = false;  skibidygame::tecla_a = false;  skibidygame::tecla_s = f
     
     }}
 
+if (menu_opengl == 8)
+{
+    GLFWwindow *window;
+    float cubo_pos[288] = {
+    // Cara frontal
+    -0.5f,-0.5f, 0.5f, 1.0f,0.2f,0.2f, 0.0f,0.0f,
+     0.5f,-0.5f, 0.5f, 1.0f,0.2f,0.2f, 1.0f,0.0f,
+     0.5f, 0.5f, 0.5f, 1.0f,0.2f,0.2f, 1.0f,1.0f,
+    -0.5f,-0.5f, 0.5f, 1.0f,0.2f,0.2f, 0.0f,0.0f,
+     0.5f, 0.5f, 0.5f, 1.0f,0.2f,0.2f, 1.0f,1.0f,
+    -0.5f, 0.5f, 0.5f, 1.0f,0.2f,0.2f, 0.0f,1.0f,
 
+    // Cara derecha
+     0.5f,-0.5f, 0.5f, 0.2f,1.0f,0.2f, 0.0f,0.0f,
+     0.5f,-0.5f,-0.5f, 0.2f,1.0f,0.2f, 1.0f,0.0f,
+     0.5f, 0.5f,-0.5f, 0.2f,1.0f,0.2f, 1.0f,1.0f,
+     0.5f,-0.5f, 0.5f, 0.2f,1.0f,0.2f, 0.0f,0.0f,
+     0.5f, 0.5f,-0.5f, 0.2f,1.0f,0.2f, 1.0f,1.0f,
+     0.5f, 0.5f, 0.5f, 0.2f,1.0f,0.2f, 0.0f,1.0f,
+
+    // Cara trasera
+     0.5f,-0.5f,-0.5f, 0.2f,0.2f,1.0f, 0.0f,0.0f,
+    -0.5f,-0.5f,-0.5f, 0.2f,0.2f,1.0f, 1.0f,0.0f,
+    -0.5f, 0.5f,-0.5f, 0.2f,0.2f,1.0f, 1.0f,1.0f,
+     0.5f,-0.5f,-0.5f, 0.2f,0.2f,1.0f, 0.0f,0.0f,
+    -0.5f, 0.5f,-0.5f, 0.2f,0.2f,1.0f, 1.0f,1.0f,
+     0.5f, 0.5f,-0.5f, 0.2f,0.2f,1.0f, 0.0f,1.0f,
+
+    // Cara izquierda
+    -0.5f,-0.5f,-0.5f, 1.0f,1.0f,0.2f, 0.0f,0.0f,
+    -0.5f,-0.5f, 0.5f, 1.0f,1.0f,0.2f, 1.0f,0.0f,
+    -0.5f, 0.5f, 0.5f, 1.0f,1.0f,0.2f, 1.0f,1.0f,
+    -0.5f,-0.5f,-0.5f, 1.0f,1.0f,0.2f, 0.0f,0.0f,
+    -0.5f, 0.5f, 0.5f, 1.0f,1.0f,0.2f, 1.0f,1.0f,
+    -0.5f, 0.5f,-0.5f, 1.0f,1.0f,0.2f, 0.0f,1.0f,
+
+    // Cara superior
+    -0.5f, 0.5f, 0.5f, 1.0f,0.2f,1.0f, 0.0f,0.0f,
+     0.5f, 0.5f, 0.5f, 1.0f,0.2f,1.0f, 1.0f,0.0f,
+     0.5f, 0.5f,-0.5f, 1.0f,0.2f,1.0f, 1.0f,1.0f,
+    -0.5f, 0.5f, 0.5f, 1.0f,0.2f,1.0f, 0.0f,0.0f,
+     0.5f, 0.5f,-0.5f, 1.0f,0.2f,1.0f, 1.0f,1.0f,
+    -0.5f, 0.5f,-0.5f, 1.0f,0.2f,1.0f, 0.0f,1.0f,
+
+    // Cara inferior
+    -0.5f,-0.5f,-0.5f, 0.2f,1.0f,1.0f, 0.0f,0.0f,
+     0.5f,-0.5f,-0.5f, 0.2f,1.0f,1.0f, 1.0f,0.0f,
+     0.5f,-0.5f, 0.5f, 0.2f,1.0f,1.0f, 1.0f,1.0f,
+    -0.5f,-0.5f,-0.5f, 0.2f,1.0f,1.0f, 0.0f,0.0f,
+     0.5f,-0.5f, 0.5f, 0.2f,1.0f,1.0f, 1.0f,1.0f,
+    -0.5f,-0.5f, 0.5f, 0.2f,1.0f,1.0f, 0.0f,1.0f
+};
+    std::string lol = "abc";std::cout<<"escribi el nombre de un png en la carpeta de instalacion o escribi la ruta completa"<<std::endl;
+    std::cin>>lol;
+    iniciar_glfw_y_glew(window,1360,768,3,"3dñiñiñi");
+    bloquete cubito;
+
+    cubito.config_3D(true,lol.c_str(),cubo_pos,288);
+    while (!glfwWindowShouldClose(window))
+    {
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+cubito.cositas_3d(true,glm::vec3(1.0,1.0,1.0),glm::vec3(0.0,0.0,-3.0));
+cubito.drwa();        cerrar_con_escape(window);
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+    
+}
 
 }
   if (menu_principal == 3)
   {
-    cppp();
-    std::cout<<"1-fnaf."<<std::endl;
-    std::cin>>menu_juegos;
+            if (!camara_reiniciada)
+            {
+                cam.reiniciar_posicion();
+                camera_pos = cam.posicion;
+                camera_front = cam.cameraFront;
+                camera_up = cam.cameraUp;
+                camara_reiniciada = true;
+            }
+piso.main_3d(camera_pos, camera_front, camera_up, piso);
+piso.drwa();
+            menu_juegos = 0;
+            cpppp(window,camera_pos,camera_front,camera_up,cam,menu_encriptar,bloq,1);    std::cout<<"1-fnaf."<<std::endl;
     if (menu_juegos == 1)
     {
      std::cout<<"cuanta bateria queres tener? se descuenta bateria solo por usar la puerta"<<std::endl;
@@ -4774,14 +5070,23 @@ skibidygame::w = false;  skibidygame::tecla_a = false;  skibidygame::tecla_s = f
  }
  if (menu_principal == 4)
  {
-    cppp();
-    std::cout<<"1-descargador de paginas web."<<std::endl;
+            if (!camara_reiniciada)
+            {
+                cam.reiniciar_posicion();
+                camera_pos = cam.posicion;
+                camera_front = cam.cameraFront;
+                camera_up = cam.cameraUp;
+                camara_reiniciada = true;
+            }
+piso.main_3d(camera_pos, camera_front, camera_up, piso);
+piso.drwa();
+            menu_tools = 0;
+            cpppp(window,camera_pos,camera_front,camera_up,cam,menu_tools,bloq,5);    std::cout<<"1-descargador de paginas web."<<std::endl;
     std::cout<<"2-generador de claves aleatorias"<<std::endl;
     std::cout<<"3-reproductor de musica"<<std::endl;
     std::cout<<"4-separar y unir archivos"<<std::endl;
         std::cout<<"5-ver fotos"<<std::endl;
 
-    std::cin>>menu_tools;
    if (menu_tools == 1)
     {
 
@@ -5139,7 +5444,7 @@ while (!glfwWindowShouldClose(visualizador::window))
       glfwPollEvents();
 }}
  }
- if (menu_principal == 0)
+ if (menu_principal == 6)
  {
   cppp();
    std::cout<<"encriptar todos los archivos? si queres encriptarlos apreta 1 si no apreta 0"<<std::endl;
@@ -5189,23 +5494,39 @@ while (!glfwWindowShouldClose(visualizador::window))
 
  }
  
- if (menu_principal == 9)
+ if (menu_principal == 5)
  {
    std::cout<<"Copyright (C) 2026 lucas"<<std::endl<<" Este programa es software libre: usted puede redistribuirlo y/o modificarlo bajo los términos de la Licencia Pública General GNU"<<std::endl<<"Este software utiliza la librería GLFW (www.glfw.org), bajo la licencia Zlib. El código fuente de esta aplicación está disponible bajo la licencia GPL v3 en https://github.com/xXluquitazXx/src_cpluspluslauncher"<<std::endl;
    std::cout<<"apreta cualquier tecla para salir"<<std::endl;
    std::cin>>c1;
    break;
  }
- if (menu_principal == 10){
+ if (menu_principal == 7){
     break;
  }
+         glfwSwapBuffers(window);
+         glfwPollEvents();
+         cerrar_con_escape(window);
+
+
+
+
+
 }
-   if (configuracion::rdbyt2 == 1)
+ 
+
+
+
+
+
+
+if (configuracion::rdbyt2 == 1)
    {
      configuracion::soloud.deinit();
    }
    
     return 0;
 }
-/*Set-Location -LiteralPath 'C:\Users\soywi\Documents\vscode'; & 'C:\msys64\ucrt64\bin\g++.exe' -D__FUNCSIG__=__PRETTY_FUNCTION__ -DWITH_WINMM -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -DCPPHTTPLIB_OPENSSL_SUPPORT -I'C:\Program Files\ArrayFire\v3\include' -I'C:\msys64\ucrt64\include' -I'abc\soloud20200207\include' -g 'c++launcher.cpp' abc\soloud20200207\src\core\soloud.cpp abc\soloud20200207\src\core\soloud_audiosource.cpp abc\soloud20200207\src\core\soloud_bus.cpp abc\soloud20200207\src\core\soloud_core_3d.cpp abc\soloud20200207\src\core\soloud_core_basicops.cpp abc\soloud20200207\src\core\soloud_core_faderops.cpp abc\soloud20200207\src\core\soloud_core_filterops.cpp abc\soloud20200207\src\core\soloud_core_getters.cpp abc\soloud20200207\src\core\soloud_core_setters.cpp abc\soloud20200207\src\core\soloud_core_voicegroup.cpp abc\soloud20200207\src\core\soloud_core_voiceops.cpp abc\soloud20200207\src\core\soloud_fader.cpp abc\soloud20200207\src\core\soloud_fft.cpp abc\soloud20200207\src\core\soloud_fft_lut.cpp abc\soloud20200207\src\core\soloud_file.cpp abc\soloud20200207\src\core\soloud_filter.cpp abc\soloud20200207\src\core\soloud_queue.cpp abc\soloud20200207\src\core\soloud_thread.cpp abc\soloud20200207\src\audiosource\wav\dr_impl.cpp abc\soloud20200207\src\audiosource\wav\soloud_wav.cpp abc\soloud20200207\src\audiosource\wav\soloud_wavstream.cpp abc\soloud20200207\src\audiosource\wav\stb_vorbis.c abc\soloud20200207\src\backend\winmm\soloud_winmm.cpp -o 'c++launcher.exe' -L'C:\Program Files\ArrayFire\v3\lib' -L'C:\msys64\ucrt64\lib' -lafopencl -laf -lglew32 -lglfw3 -lopengl32 -lwinmm -lws2_32 -lcrypt32 -lssl -lcrypto*/
+/*Set-Location -LiteralPath 'C:\Users\soywi\Documents\vscode'; & 'C:\msys64\ucrt64\bin\g++.exe' -D__FUNCSIG__=__PRETTY_FUNCTION__ -DWITH_WINMM -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -DCPPHTTPLIB_OPENSSL_SUPPORT -I'C:\Program Files\ArrayFire\v3\include' -I'C:\msys64\ucrt64\include' -I'abc\soloud20200207\include' -g 'c++launcher.cpp' app_icon.o abc\soloud20200207\src\core\soloud.cpp abc\soloud20200207\src\core\soloud_audiosource.cpp abc\soloud20200207\src\core\soloud_bus.cpp abc\soloud20200207\src\core\soloud_core_3d.cpp abc\soloud20200207\src\core\soloud_core_basicops.cpp abc\soloud20200207\src\core\soloud_core_faderops.cpp abc\soloud20200207\src\core\soloud_core_filterops.cpp abc\soloud20200207\src\core\soloud_core_getters.cpp abc\soloud20200207\src\core\soloud_core_setters.cpp abc\soloud20200207\src\core\soloud_core_voicegroup.cpp abc\soloud20200207\src\core\soloud_core_voiceops.cpp abc\soloud20200207\src\core\soloud_fader.cpp abc\soloud20200207\src\core\soloud_fft.cpp abc\soloud20200207\src\core\soloud_fft_lut.cpp abc\soloud20200207\src\core\soloud_file.cpp abc\soloud20200207\src\core\soloud_filter.cpp abc\soloud20200207\src\core\soloud_queue.cpp abc\soloud20200207\src\core\soloud_thread.cpp abc\soloud20200207\src\audiosource\wav\dr_impl.cpp abc\soloud20200207\src\audiosource\wav\soloud_wav.cpp abc\soloud20200207\src\audiosource\wav\soloud_wavstream.cpp abc\soloud20200207\src\audiosource\wav\stb_vorbis.c abc\soloud20200207\src\backend\winmm\soloud_winmm.cpp -o 'c++launcher.exe' -L'C:\Program Files\ArrayFire\v3\lib' -L'C:\msys64\ucrt64\lib' -lafopencl -laf -lglew32 -lglfw3 -lopengl32 -lwinmm -lws2_32 -lcrypt32 -lssl -lcrypto*/
+
 
